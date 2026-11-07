@@ -56,48 +56,37 @@
     // back to front (the slicing order)
     parts: [
       { art: "armR_up", bone: "armR_up" },
-      { art: "armR_up", bone: "armR_up" },
-      { art: "armR_lo", bone: "armR_lo" },
-      { art: "legL_up", bone: "legL_up" },
       { art: "legL_up", bone: "legL_up" },
       { art: "legL_lo", bone: "legL_lo" },
       { art: "legR_up", bone: "legR_up" },
-      { art: "legR_up", bone: "legR_up" },
       { art: "legR_lo", bone: "legR_lo" },
-      // the parts that have covered areas (torso, head, upper limbs) are drawn twice: slice.py leaves a half-transparent hairline where
-      // a covered area meets the part's own pixels, and a second copy fills it in when the cover moves away
-      { art: "torso", bone: "torso" },
+      // game/art-src/snow: the torso under the chest glove and the head's chin were repainted, and the slice hairlines closed,
+      // so the chest glove can swing freely and nothing needs drawing twice
       { art: "torso", bone: "torso" },
       { art: "head", bone: "head", icon: true },
-      { art: "head", bone: "head" },
-      { art: "armL_up", bone: "armL_up" },
       { art: "armL_up", bone: "armL_up" },
       { art: "armL_lo", bone: "armL_lo" },
+      // the punching glove is drawn in front of everything, so it never hides behind the head
+      { art: "armR_lo", bone: "armR_lo" },
       { art: "pickle", bone: "pickle", offset: [-30, 0] },
       { art: "donut", bone: "donut", offset: [-30, 0] },
     ],
 
     anims: {
-      // snowball bounces on its toes; pickle and donut bob on their own, offset beats
+      // snowball bounces on its toes, knees bending so the boots stay planted; pickle and donut bob on their own, offset beats
+      // (kids / <kid>_hop cancel the root so the sidekicks stay on the floor)
       idle: [
-        { root: [0, 0], ...kid("pickle", 0.3, -3), ...kid("donut", 0, 2) },
-        { root: [0, 6], sq: [1.01, 0.99], torso: 1, head: -1, armL_up: 2, armL_lo: -2, armR_up: -2, armR_lo: 3,
-          ...kid("pickle", 0.15, 0), ...kid("donut", 0.3, -3) },
-        { root: [0, 14], sq: [1.03, 0.97], torso: 2, head: -3, armL_up: 4, armL_lo: -4, armR_up: -4, armR_lo: 6,
-          legL_up: 2, legL_lo: -3, legR_up: -2, legR_lo: 3, ...kid("pickle", 0, 3), ...kid("donut", 0.15, 0) },
-        { root: [0, 6], sq: [1.01, 0.99], torso: 1, head: -1, armL_up: 2, armL_lo: -2, armR_up: -2, armR_lo: 3,
-          ...kid("pickle", 0.15, 0), ...kid("donut", 0, 2) },
+        { root: [0, 0], legR_up: -3, legR_lo: 3, legL_up: 0, legL_lo: 0, kids: 0, pickle_hop: 0.16, donut_hop: 0, pickle: -3, donut: 2 },
+        { root: [0, 12], sq: [1.02, 0.98], torso: 2, head: -2, armL_up: 4, armL_lo: -4, armR_up: -5, armR_lo: 6, legR_up: -19, legR_lo: 19, legL_up: 14, legL_lo: -14, kids: 0.155, pickle_hop: 0.309, donut_hop: 0.389, donut: -3 },
+        { root: [0, 24], sq: [1.05, 0.95], torso: 3, head: -4, armL_up: 7, armL_lo: -7, armR_up: -9, armR_lo: 10, legR_up: -30, legR_lo: 30, legL_up: 25, legL_lo: -25, kids: 0.377, pickle_hop: 0.458, donut_hop: 0.538, pickle: 3 },
+        { root: [0, 12], sq: [1.02, 0.98], torso: 2, head: -2, armL_up: 4, armL_lo: -4, armR_up: -5, armR_lo: 6, legR_up: -19, legR_lo: 19, legL_up: 14, legL_lo: -14, kids: 0.155, pickle_hop: 0.309, donut_hop: 0.229, donut: 2 },
       ],
-      // waddling run: stubby legs swing, body rolls side to side; the kids scamper with their own hops
+      // waddling run: stubby legs swing hard, body bounces and leans in; the kids scamper with their own hops
       run: [
-        { root: [0, 0], torso: 6, head: -3, legL_up: 16, legL_lo: 12, legR_up: -18, legR_lo: 6, armL_up: -14, armL_lo: 8, armR_up: 14, armR_lo: -6,
-          ...kid("pickle", 0.9, -8), ...kid("donut", 0, 6) },
-        { root: [0, -24], sq: [0.98, 1.03], torso: 8, head: -5, legL_up: 3, legL_lo: 20, legR_up: -4, legR_lo: 22,
-          ...kid("pickle", 0, 4), ...kid("donut", 0.9, -8) },
-        { root: [0, 0], torso: 6, head: -3, legL_up: -18, legL_lo: 6, legR_up: 16, legR_lo: 12, armL_up: 14, armL_lo: -6, armR_up: -14, armR_lo: 8,
-          ...kid("pickle", 0.9, -8), ...kid("donut", 0, 6) },
-        { root: [0, -24], sq: [0.98, 1.03], torso: 8, head: -5, legL_up: -4, legL_lo: 22, legR_up: 3, legR_lo: 20,
-          ...kid("pickle", 0, 4), ...kid("donut", 0.9, -8) },
+        { root: [0, 0], torso: 10, head: -5, legL_up: 26, legL_lo: 20, legR_up: -30, legR_lo: 12, armL_up: -22, armL_lo: 12, armR_up: 20, armR_lo: -10, kids: 0, pickle_hop: 0.601, donut_hop: 0, pickle: -10, donut: 8 },
+        { root: [0, -36], sq: [0.96, 1.05], torso: 12, head: -7, legL_up: 4, legL_lo: 30, legR_up: -6, legR_lo: 33, kids: -0.33, pickle_hop: -0.688, donut_hop: -0.087, pickle: 6, donut: -10 },
+        { root: [0, -14], torso: 10, head: -5, legL_up: -30, legL_lo: 12, legR_up: 16, legR_lo: 4, armL_up: 22, armL_lo: -12, armR_up: -20, armR_lo: 12, kids: 0, pickle_hop: 0.334, donut_hop: 0, pickle: -10, donut: 8 },
+        { root: [0, -36], sq: [0.96, 1.05], torso: 12, head: -7, legL_up: -6, legL_lo: 33, legR_up: 4, legR_lo: 30, kids: -0.33, pickle_hop: -0.688, donut_hop: -0.087, pickle: 6, donut: -10 },
       ],
       jump: { root: [0, -14], sq: [0.95, 1.06], torso: -4, head: -5,
         legL_up: -16, legL_lo: 22, legR_up: -18, legR_lo: 28, armL_up: -26, armL_lo: 16, armR_up: -22, armR_lo: 8,

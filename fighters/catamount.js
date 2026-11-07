@@ -4,12 +4,15 @@
 // armR (reaching out, claw open) throws the strike; armL (across the chest) stays up as a guard.
 // legL is painted stepping back and legR stepping forward, so the run swings each around its own rest pose.
 // At each knee the thigh is drawn over the shin so the cut sits on the thigh's painted outline.
+// Each hind foot (hock to toes) rides its own bone (footL, footR) so planted paws stay flat and kicks can point them.
+// The art is game/art-src/catamount: chest and near upper arm inpainted, tail root and knees rounded, feet split off.
 
 (() => {
   const P = {
-    hip: [700, 430], neck: [815, 205], tail: [630, 420], tailMid: [472, 552], sash: [745, 400],
+    hip: [700, 430], neck: [815, 205], tail: [650, 440], tailMid: [472, 552], sash: [745, 400],
     shoulderL: [665, 225], elbowL: [572, 305], shoulderR: [865, 250], elbowR: [948, 328],
-    thighL: [655, 440], kneeL: [615, 600], thighR: [785, 430], kneeR: [915, 565],
+    thighL: [655, 440], kneeL: [596, 577], thighR: [785, 430], kneeR: [895, 548],
+    hockL: [488, 620], hockR: [812, 624],
   };
 
   registerFighter({
@@ -37,8 +40,10 @@
       armL_lo: { parent: "armL_up", pivot: P.elbowL, lag: 0.75 },
       legL_up: { parent: "hip", pivot: P.thighL },
       legL_lo: { parent: "legL_up", pivot: P.kneeL },
+      footL: { parent: "legL_lo", pivot: P.hockL },
       legR_up: { parent: "hip", pivot: P.thighR },
       legR_lo: { parent: "legR_up", pivot: P.kneeR },
+      footR: { parent: "legR_lo", pivot: P.hockR },
     },
 
     // back to front (the slicing order)
@@ -48,8 +53,10 @@
       { art: "armR_up", bone: "armR_up" },
       { art: "armR_lo", bone: "armR_lo" },
       { art: "legL_lo", bone: "legL_lo" },
+      { art: "footL", bone: "footL" },
       { art: "legL_up", bone: "legL_up" },
       { art: "legR_lo", bone: "legR_lo" },
+      { art: "footR", bone: "footR" },
       { art: "legR_up", bone: "legR_up" },
       { art: "torso", bone: "torso" },
       { art: "sash", bone: "sash" },
@@ -62,8 +69,8 @@
       // light on the toes, a quick bounce
       idle: [
         { root: [0, 0] },
-        { root: [0, 18], sq: [1.02, 0.98], torso: 2, head: -3, armL_up: 5, armL_lo: -6, armR_up: -4, armR_lo: 6,
-          legL_up: -3, legL_lo: 5, legR_up: 4, legR_lo: 6 },
+        { root: [0, 16], sq: [1.02, 0.98], torso: 2, head: -3, tail1: 6, tail2: 8, armL_up: 5, armL_lo: -6, armR_up: -4, armR_lo: 6,
+          legL_up: -4, legL_lo: 16, footL: -12, legR_up: -3, legR_lo: 11, footR: -8 },
       ],
       // fast, springy sprint: long strides, big airborne bounce, low lean
       run: [

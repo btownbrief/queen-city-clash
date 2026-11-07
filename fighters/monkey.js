@@ -2,6 +2,8 @@
 // and animated on bones. Units are the painting's pixels (1408 x 768); feet at y ~745.
 // Angles are degrees, clockwise, relative to the painted pose. For limbs, negative swings forward.
 // armR is on the facing side and throws the punch; armL (fist across the chest) stays up as a guard.
+// Feet ride their own ankle bones (footL, footR) so kicks can point the toes; the art is game/art-src/monkey
+// (re-sliced with feet, torso and near upper arm inpainted under the chest arm).
 // Wings: wingN (big, spread to the left) and wingF (small, behind the head) each ride their own bone.
 // For wingN positive raises the wing; for wingF negative raises it (they mirror each other).
 
@@ -11,6 +13,7 @@
     wingN: [590, 270], wingF: [680, 255],
     shoulderL: [625, 290], elbowL: [490, 400], shoulderR: [840, 365], elbowR: [908, 440],
     thighL: [645, 495], kneeL: [555, 592], thighR: [740, 500], kneeR: [840, 560],
+    ankleL: [488, 684], ankleR: [800, 662],
   };
 
   registerFighter({
@@ -38,8 +41,10 @@
       armL_lo: { parent: "armL_up", pivot: P.elbowL, lag: 0.75 },
       legL_up: { parent: "hip", pivot: P.thighL },
       legL_lo: { parent: "legL_up", pivot: P.kneeL },
+      footL: { parent: "legL_lo", pivot: P.ankleL },
       legR_up: { parent: "hip", pivot: P.thighR },
       legR_lo: { parent: "legR_up", pivot: P.kneeR },
+      footR: { parent: "legR_lo", pivot: P.ankleR },
     },
 
     // back to front (the slicing order)
@@ -50,8 +55,10 @@
       { art: "armR_lo", bone: "armR_lo" },
       { art: "legL_up", bone: "legL_up" },
       { art: "legL_lo", bone: "legL_lo" },
+      { art: "footL", bone: "footL" },
       { art: "legR_up", bone: "legR_up" },
       { art: "legR_lo", bone: "legR_lo" },
+      { art: "footR", bone: "footR" },
       { art: "torso", bone: "torso" },
       { art: "head", bone: "head", icon: true },
       { art: "armL_up", bone: "armL_up" },
@@ -62,8 +69,8 @@
       // light on its feet, wings settling and opening a little with each breath
       idle: [
         { root: [0, 0], wingN: -2, wingF: 2 },
-        { root: [0, 12], sq: [1.02, 0.98], torso: 2, head: -3, wingN: 5, wingF: -5, armL_up: 4, armL_lo: -4, armR_up: -4, armR_lo: 5,
-          legL_up: 3, legL_lo: -4, legR_up: -3, legR_lo: 4 },
+        { root: [0, 12], sq: [1.02, 0.98], torso: 3, head: -3, wingN: 8, wingF: -7, armL_up: 4, armL_lo: -6, armR_up: -5, armR_lo: 7,
+          legL_up: -19, legL_lo: 44, footL: -25, legR_up: -6, legR_lo: 10, footR: -4 },
       ],
       // quick scampering run, hunched forward, wings beating lightly
       run: [

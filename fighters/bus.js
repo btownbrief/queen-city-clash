@@ -2,8 +2,8 @@
 // Units are the painting's pixels (1408 x 768); feet on y ~718 (left) / ~700 (right).
 // Angles are degrees, clockwise, relative to the painted pose. For limbs, negative swings forward.
 // The bus body is one rigid part (torso plus windshield face). armR (the raised fist behind the body,
-// on the facing side) throws the punch; armL (the glowing fist across the front) stays up as a guard, and moves
-// only a few degrees: it covers a large patch of the bus side, which shows as a blur if it swings far.
+// on the facing side) throws the punch; armL (the glowing fist across the front) is the second fist. Round 2 repainted
+// the bus side it covers (game/art-src/bus), so it can swing freely now.
 
 (() => {
   const P = {
@@ -44,9 +44,9 @@
       { art: "armR_lo", bone: "armR_lo" },
       { art: "legL_up", bone: "legL_up" },
       { art: "legL_lo", bone: "legL_lo" },
-      { art: "legR_up", bone: "legR_up" },
-      { art: "legR_lo", bone: "legR_lo" },
       { art: "body", bone: "torso", icon: true },
+      { art: "legR_up", bone: "legR_up" },   // the front leg is drawn over the bus (round 2) so front kicks show
+      { art: "legR_lo", bone: "legR_lo" },
       { art: "armL_up", bone: "armL_up" },
       { art: "armL_lo", bone: "armL_lo" },
     ],
@@ -54,16 +54,19 @@
     anims: {
       idle: [
         { root: [0, 0] },
-        { root: [0, 10], sq: [1.02, 0.98], torso: 1.5, armL_up: 4, armL_lo: -5, armR_up: -4, armR_lo: 6,
+        // breathing bounce: both fists bob (the bus side under the glowing fist was repainted in round 2)
+        { root: [0, 12], sq: [1.02, 0.98], torso: 2, armL_up: 8, armL_lo: -10, armR_up: -6, armR_lo: 10,
           legL_up: 3, legL_lo: -4, legR_up: -3, legR_lo: 4 },
       ],
-      // wide stance, so the poses were tuned (feet checked numerically) to keep the planted foot on the ground
+      // wide stance, so the leg angles were tuned (feet checked numerically) to keep the planted foot on the ground;
+      // both fists now pump opposite the legs and the bus leans into the run
       run: [
-        { root: [0, 0], torso: 4, legL_up: 2, legL_lo: -2, legR_up: -22, legR_lo: -5, armL_up: 4, armL_lo: -5, armR_up: 14, armR_lo: -10 },
-        { root: [0, -16], sq: [0.98, 1.03], torso: 6, legL_up: -6, legL_lo: 24, legR_up: -8, legR_lo: 20 },
-        { root: [0, -8], torso: 4, legL_up: -22, legL_lo: 58, legR_up: 12, legR_lo: -14, armL_up: -4, armL_lo: 5, armR_up: -14, armR_lo: 10 },
-        { root: [0, -16], sq: [0.98, 1.03], torso: 6, legL_up: -12, legL_lo: 34, legR_up: 2, legR_lo: 12 },
+        { root: [0, 0], torso: 7, legL_up: 2, legL_lo: -2, legR_up: -22, legR_lo: -5, armL_up: 26, armL_lo: -16, armR_up: 24, armR_lo: -16 },
+        { root: [0, -20], sq: [0.97, 1.04], torso: 9, legL_up: -6, legL_lo: 24, legR_up: -8, legR_lo: 20, armL_up: 4, armR_up: 2 },
+        { root: [0, -8], torso: 7, legL_up: -22, legL_lo: 58, legR_up: 12, legR_lo: -14, armL_up: -24, armL_lo: 14, armR_up: -24, armR_lo: 16 },
+        { root: [0, -20], sq: [0.97, 1.04], torso: 9, legL_up: -12, legL_lo: 34, legR_up: 2, legR_lo: 12, armL_up: 4, armR_up: 2 },
       ],
+      // jump, fall, windup, strike and hit below are overridden by bus.moves.js (Scarf Kid's pose set)
       jump: { root: [0, -14], sq: [0.95, 1.06], torso: -4,
         legL_up: -22, legL_lo: 30, legR_up: -26, legR_lo: 40, armL_up: -5, armL_lo: 4, armR_up: -20, armR_lo: -10 },
       fall: { root: [0, 0], torso: 3,

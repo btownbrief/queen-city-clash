@@ -369,7 +369,7 @@ const RIG = (() => {
     for (const part of def.parts) {
       if (part.expr && part.expr !== "open") continue;
       const art = def.art && def.art[part.art];
-      const vb = art ? art.vb : null;
+      const vb = art ? art.vb : def.meta ? def.meta[part.art] : null;
       if (!vb) continue;
       let m = base.multiply(M[part.bone]);
       if (part.offset) m = m.translate(part.offset[0], part.offset[1]);
