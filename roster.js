@@ -11,7 +11,7 @@ window.FIGHTERS_LOADED = (async () => {
   const base = window.QCC_BASE || "";
   const load = (src, tries = 5, optional = false) => new Promise((resolve, reject) => {
     const el = document.createElement("script");
-    el.src = tries < 5 ? `${src}?retry=${5 - tries}` : src;
+    el.src = (window.qv || ((u) => u))(tries < 5 ? `${src}?retry=${5 - tries}` : src);
     el.onload = resolve;
     el.onerror = () => {
       el.remove();
@@ -26,6 +26,6 @@ window.FIGHTERS_LOADED = (async () => {
     await load(`${base}fighters/${id}.moves.js`, 2, true);
     // the parts' boxes (small): lets the game size each fighter from its real art before the images load
     const def = FIGHTERS[id];
-    for (let i = 0; def && !def.meta && i < 4; i++) { try { const r = await fetch(`${base}${def.raster}/parts.json`); if (r.ok) def.meta = await r.json(); } catch (e) { await new Promise((res) => setTimeout(res, 200)); } }
+    for (let i = 0; def && !def.meta && i < 4; i++) { try { const r = await fetch((window.qv || ((u) => u))(`${base}${def.raster}/parts.json`)); if (r.ok) def.meta = await r.json(); } catch (e) { await new Promise((res) => setTimeout(res, 200)); } }
   }
 })();

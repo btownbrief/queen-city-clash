@@ -52,14 +52,14 @@ const RIG = (() => {
         if (tries > 1) setTimeout(() => loadImg(src, tries - 1).then(resolve, reject), 150);
         else reject(new Error("could not load " + src.slice(0, 80)));
       };
-      img.src = src;
+      img.src = (window.qv || ((u) => u))(src);   // QCC: ?v=<build> so a new release never mixes with cached old files
     });
   }
 
   async function fetchJson(url, tries = 5) {
     for (let i = 0; ; i++) {
       try {
-        const r = await fetch(url);
+        const r = await fetch((window.qv || ((u) => u))(url));
         if (r.ok) return await r.json();
         throw new Error(`${r.status} ${url}`);
       } catch (e) {

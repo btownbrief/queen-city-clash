@@ -25,8 +25,8 @@
 }
 html,body{height:100%;touch-action:manipulation}
 body{margin:0;background:var(--void);color:var(--ink);font-family:var(--pixel);overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-#app{box-sizing:border-box;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-#screen{position:relative;width:min(100%, calc((100vh - var(--reserve) - 20px) * 16 / 9));width:min(100%, calc((100dvh - var(--reserve) - 20px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) * 16 / 9));max-width:100%}
+#app{box-sizing:border-box;height:var(--sh,100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#screen{position:relative;width:min(100%, calc((100vh - var(--reserve) - 20px) * 16 / 9));width:min(100%, calc((var(--sh,100dvh) - var(--reserve) - 20px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)) * 16 / 9));max-width:100%}
 canvas{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#000;box-shadow:0 0 0 2px #000,0 0 0 5px var(--rim),0 18px 50px rgba(0,0,0,.55);cursor:pointer;touch-action:none}
 .bar{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.04em;max-width:100%}
 .keys{display:flex;flex-wrap:wrap;gap:4px 10px;justify-content:center}
@@ -79,7 +79,7 @@ body.playing #tpause{display:block}
 @media (hover:none) and (pointer:coarse) and (orientation:landscape){
   :root{--b:calc(clamp(46px,13vh,60px) * var(--bs,1));--sr:calc(clamp(84px,24vh,112px) * var(--bs,1))}
   #app{padding:0;justify-content:center}
-  #screen{width:min(100vw,calc(100dvh * 16 / 9))}
+  #screen{width:min(100vw,calc(var(--sh,100dvh) * 16 / 9))}
   canvas{box-shadow:none}
   #pad{position:fixed;inset:0;min-height:0;margin:0;pointer-events:none}
   body:not(.playing) #pad{display:none}
@@ -115,9 +115,10 @@ body.playing #tpause{display:block}
   </div>
 </div>
 
-<script src="rig.js"></script>
-<script src="roster.js"></script>
-<script src="qcc-data.js"></script>
+<script>window.QCC_V="20261106222141";window.qv=u=>u+(u.includes("?")?"&":"?")+"v="+window.QCC_V;</script>
+<script src="rig.js?v=20261106222141"></script>
+<script src="roster.js?v=20261106222141"></script>
+<script src="qcc-data.js?v=20261106222141"></script>
 <script>
 // Queen City Clash: the engine below starts once the fighter rigs (small .js files) are in;
 // their painted parts stream in afterwards.
@@ -161,14 +162,31 @@ function qccChar(c, k) {
       // fighter gets a hurtbox as much wider as its art is, and its attacks reach out by the same amount
       // (reachHitboxes), so the spacing between any two fighters plays like Scarf Kid.
       const aw = (b[2] - b[0]) * c.rk / c.s;   // art width in the 46-unit frame
-      c.hw = Math.max(7, Math.min(aw / 4.8, 20)); } }   // half of (width / 2.4), capped
+      c.hw = Math.max(7, Math.min(aw / 4.8, 11)); } }   // half of (width / 2.4), capped at 11 in round 3 (Scarf Kid is 7 for all): bulky fighters were too easy to hit
+  // Round 3: Stephen found the jumps too low. Our painted fighters read bigger and bulkier than Scarf Kid's
+  // stick-figure-sized ones, so the same jump looks small, worst for the heavies and blobs. Raise the jump
+  // height per style (speed goes up by the square root), and the up-special rise a little.
+  const JUMPK = { brawler: 1.3, speedster: 1.25, showoff: 1.3, blob: 1.45, heavy: 1.6 };
+  if (!c.jumpBoosted) { c.jumpBoosted = true; c.jump *= Math.sqrt(JUMPK[k.style] || 1.3); if (c.rise) c.rise *= Math.sqrt(1.15); }
   c.power = k.power || Math.max(1, Math.min(6, Math.round((R.stats.power - 0.6) * 6) + 1));
   c.col = { top: k.aura };
   c.spShort = k.spShort || SPSHORT[k.id];   // the phone's SPECIAL button label
   return c;
 }
-var SPSHORT = { heroic: "SWIRL", brawler: "NAPKIN", champ: "WAVE", monkey: "GLIDE", catamount: "STEP", cabinet: "PAPER", whale: "SPOUT",
-  outback: "HEADLIGHTS", syrup: "SAP", snow: "PICKLE", tow: "HOOK", bus: "SPARK", crow: "BLINK" };
+// The phone's real screen height, locked: it changes only when the phone turns (the width changes), when the
+// screen gets smaller (Safari's toolbar first appears), or when it grows a lot (the keyboard closes). Small
+// changes from the toolbar sliding in and out are ignored, so the game and buttons keep one size.
+var QH = { w: 0, h: 0 };
+function qccH() {
+  const w = innerWidth, h = innerHeight;
+  if (w !== QH.w || !QH.h || h < QH.h - 2 || h > QH.h * 1.25) { QH.w = w; QH.h = h; document.documentElement.style.setProperty("--sh", h + "px"); }
+  return QH.h;
+}
+// round 3: the CPU should not fire a close-range neutral special from across the stage
+var CLOSE_SIG = { glide: 1, stamp: 1, burrow: 1, puddle: 1, scatter: 1 };
+function qccCloseSig(f) { const m = f.c.mv.nspec; return m && m.sig && CLOSE_SIG[m.sig] ? m.sig : null; }
+var SPSHORT = { heroic: "SWIRL", brawler: "NAPKIN", champ: "WAVE", monkey: "GLIDE", catamount: "STEP", cabinet: "STAMP", whale: "BURROW",
+  outback: "HEADLIGHTS", syrup: "PUDDLE", snow: "PICKLE", tow: "HOOK", bus: "SPARK", crow: "SCATTER" };
 function posemap() {
   return posemap.m || (posemap.m = { idle0: "idle", idle1: "idle", walk0: "run", walk1: "run", walk2: "run", jump: "jump", fall: "fall",
     punch: "strike", punch2: "strike", chamber: "windup", kick: "kick", spark: "kick", upper: "upper", rise: "rise", spike: "spike", nair: "nair",
@@ -393,7 +411,7 @@ function qccMakeSky(i, into) {
 var LMIMG = {};
 function landmarkImg(i, L) {   // load once; redraw this area's sky when it arrives
   const src = L.src;
-  if (!LMIMG[src]) { const im = new Image(); LMIMG[src] = im; im.onload = () => { if (SKY[i]) qccMakeSky(i, SKY[i]); }; im.src = src; }
+  if (!LMIMG[src]) { const im = new Image(); LMIMG[src] = im; im.onload = () => { if (SKY[i]) qccMakeSky(i, SKY[i]); }; im.src = (window.qv || ((u) => u))(src); }
   return LMIMG[src];
 }
 var TINTS = {};
@@ -407,7 +425,7 @@ function tintMask(im, col) {   // the silhouette's black shape as one flat colou
 /* ---------- unlockable areas ---------- */
 // The first 3 areas are open. Each Arcade clear opens the next one, and so does every 2nd Battle won
 // against CPUs. Saved with the other unlocks on this device.
-var START_AREAS = 3;
+var START_AREAS = 5;   // round 3: 5 open (incl. the train and flame-jet areas), 5 to unlock
 function areasOpen() { return Math.min(QSTAGES.length, START_AREAS + (unlocks().areas | 0)); }
 function stageOpen(i) { return i < areasOpen(); }
 function openStages() { return QSTAGES.map((_, i) => i).filter(stageOpen); }
@@ -572,6 +590,7 @@ function rigPoint(f, pose, bone, px, py) {   // a rig point in world units
 var SIG = {
   // Tow Truck: the hook flies out, then reels back; whoever it catches is pulled into a grab
   hook(f, m, x) {
+    if (!f.onGround && f.t === 1) { if (f.projCD <= 0 && f.c.proj) { spawnProj(f); f.projCD = f.c.proj.cd; } f.t = m.st + m.ac; return; }   // round 3: in the air, a fireball
     if (f.t === m.st) { G.projs = G.projs.filter((p) => !(p.owner === f && p.kind === "hook"));
       const s = f.c.s; G.projs.push({ kind: "hook", hide: "hook", x: f.x + f.face * 24 * s, y: f.y - 30 * s, vx: f.face * 7.5, r: 6, col: "#c9c9d6", core: "#ffffff", owner: f, t: 0, life: 60, out: 18, noclash: true });
       SFX.throw(); }
@@ -613,7 +632,7 @@ var SIG = {
   battery(f, m) {
     const k = clamp((f.charge - 1) * 2, 0, 1);
     if (f.t >= m.st && f.t < m.st + m.ac) {
-      f.vx = f.face * f.c.sdash * (0.8 + k * 0.9);
+      f.vx = f.face * f.c.sdash * (1 + k * 0.7);
       if (f.t % 2 === 0) burst(f.x + f.face * 14 * f.c.s, f.y - rr(8, 40) * f.c.s, 3, ["#7fe0ff", "#ffffff", "#4f7bff"], 2.2, 10, 2, 0);
     }
     if (f.t === m.st && k > 0.6) popup("FULL CHARGE!", f.x, f.y - 70, 16, "#7fe0ff", 30);
@@ -622,14 +641,14 @@ var SIG = {
   stamp(f, m, x) {
     if (f.t === 1) { f.stamped = false; if (f.onGround) { f.vy = -6; f.onGround = false; } }
     if (f.t >= m.st && !f.stamped) {
-      if (f.vy > 0 && floorBelow(f.x, f.y) == null) { f.state = "helpless"; f.move = null; f.sigPose = null; return; }   // off-stage: no slam, fall normally
+      if (f.vy > 0 && floorBelow(f.x, f.y) == null) { f.state = "air"; f.move = null; f.sigPose = null; return; }   // off-stage: no slam, fall normally
       x.grav = false; f.vy = Math.min(f.vy + 0.9, 9); f.vx *= 0.9; f.sigPose = f.vy < 0 ? "special" : "spike";
       if (f.onGround) {
         f.stamped = true; f.sigPose = "slam";
         G.shake = Math.max(G.shake, 8); SFX.heavy(); spawnWave(f, { v: 4, r: 8, dmg: 9, life: 48 });
         sigHit(f, boxAt(f, -28, -22, 56, 24), m);
         f.t = Math.max(f.t, m.st + m.ac);
-      } else if (f.t - m.st > 45) { f.state = "helpless"; f.move = null; f.sigPose = null; }   // missed the floor: fall helpless (a ledge can still be grabbed)
+      } else if (f.t - m.st > 45) { f.state = "air"; f.move = null; f.sigPose = null; }   // missed the floor: fall helpless (a ledge can still be grabbed)
       else if (f.t >= m.st + m.ac - 1) f.t = m.st + m.ac - 1;   // keep falling until it lands
     }
     if (f.stamped && f.t >= m.st + m.ac) f.sigPose = "slam";
@@ -640,7 +659,7 @@ var SIG = {
     if (f.t === 1) { f.burrowed = false; f.airT = 0; f.sigPose = "special"; }
     if (f.t >= m.st && f.t < m.st + m.ac) {
       if (!f.onGround) {   // started in the air: dive to the floor first (and give up after a while, so a ledge can still be grabbed)
-        f.airT = (f.airT | 0) + 1; if (f.airT > 40 || floorBelow(f.x, f.y) == null) { f.state = "helpless"; f.move = null; f.sigPose = null; return; }   // no floor below: no dive
+        f.airT = (f.airT | 0) + 1; if (f.airT > 40 || floorBelow(f.x, f.y) == null) { f.state = "air"; f.move = null; f.sigPose = null; return; }   // no floor below: no dive
         x.grav = false; f.vy = 7; f.vx *= 0.8; f.sigPose = "special"; if (f.t >= m.st + m.ac - 1) f.t = m.st + m.ac - 2; return; }
       if (!f.burrowed) { f.burrowed = true; f.hidden = true; f.sigHide = "burrow"; SFX.roll(); burst(f.x, f.y - 2, 14, ["#6b4a2a", "#a07a4a", "#3a2a1a"], 2.4, 16, 3, 0.12); }
       f.intan = true;
@@ -861,7 +880,7 @@ const MAIN=cv.getContext('2d');MAIN.imageSmoothingEnabled=!PIXEL;MAIN.imageSmoot
 let VH=540,UIY=0;const COARSE=matchMedia('(hover: none) and (pointer: coarse)');
 function fitCanvas(){
   let vh=540;
-  if((TOUCH||COARSE.matches)&&innerHeight>innerWidth*1.15){const w=cv.clientWidth||innerWidth,t=Math.round(960*(innerHeight*.74-8)/w);if(t>=1150)vh=Math.min(t,1800);}
+  const IH=qccH();if((TOUCH||COARSE.matches)&&IH>innerWidth*1.15){const w=cv.clientWidth||innerWidth,t=Math.round(960*(IH*.74-8)/w);if(t>=1150)vh=Math.min(t,1800);}
   if(vh!==VH){VH=vh;cv.height=Math.round(VH*DPR);cv.style.aspectRatio=`960/${VH}`;MAIN.imageSmoothingEnabled=!PIXEL;MAIN.imageSmoothingQuality='high';}
   UIY=(VH-540)/2;
 }
@@ -1814,7 +1833,7 @@ const score=f=>(f.kos||0)-f.falls;
 const TASKS=[
  ['run','RUN','hold {L} or {R}'],['jump','JUMP','{J}  (or {U})'],['djump','DOUBLE JUMP','jump again in the air'],['short','SHORT HOP','tap jump super quick'],
  ['ff','FAST FALL','{D} while falling'],['crouch','DUCK','hold {D} on the ground'],['jab','JAB COMBO','{A} {A} {A}'],['side','SMASH','{R} + {A}  (hold {A} to charge)'],
- ['upa','UP SMASH','{U} + {A}'],['downa','LOW SWEEP','{D} + {A}'],['aerial','AIR ATTACK','{A} in the air · {D}+{A} stomps'],['nspec','SHOOT','{S} alone = {N}'],
+ ['upa','UP SMASH','{U} + {A}'],['downa','LOW SWEEP','{D} + {A}'],['aerial','AIR ATTACK','{A} in the air · {D}+{A} stomps'],['nspec','SPECIAL','{S} alone = {N}'],
  ['sspec','DASH STRIKE','{R} + {S}'],['uspec','RECOVERY','{U} + {S}'],['dspec','COUNTER','{D} + {S}'],['shield','SHIELD','hold {H}'],
  ['roll','ROLL','{H} then {L} or {R}'],['spot','DODGE','{H} then {D}'],['airdodge','AIR DODGE','{H} in the air'],['grab','GRAB','{H} + {A}'],['throw','THROW','grab, then hold a direction'],
  ['ledge','LEDGE GRAB','fall next to the stage edge'],['spark','SPARK','hit with {A}, then {R}+{A} instantly'],['super','SUPER','{X} when your meter is full'],
@@ -2199,7 +2218,7 @@ function updFighter(f,o,live){
       const m=f.move;
       if(bb==='super'&&f.t<6&&f.meter>=100){f.buf=null;startMove(f,'super');break;}
       if(bb==='shield'&&m.air&&!f.onGround){f.buf=null;f.lcT=G.frame;}
-      if(m.charge&&f.t===m.st-1&&h[m.chargeBtn||'attack']&&f.chargeT<60){f.chargeT++;f.charge=1+f.chargeT/60*.5;f.vx*=.8;if(f.chargeT%5===0){burst(f.x+rr(-10,10),f.y-rr(10,40),2,['#ffffff',c.aura],.8,10,2,-.05);SFX.charge();}break;}
+      if(m.charge&&f.t===m.st-1&&h[m.chargeBtn||'attack']&&f.chargeT<60&&(f.onGround||!m.sig)){f.chargeT++;f.charge=1+f.chargeT/60*.5;f.vx*=.8;if(f.chargeT%5===0){burst(f.x+rr(-10,10),f.y-rr(10,40),2,['#ffffff',c.aura],.8,10,2,-.05);SFX.charge();}break;}
       f.t++;
       if(bb==='attack'&&(f.mname==='jab'||f.mname==='jab2')){
         const n=pickMove(f,'attack');
@@ -2493,8 +2512,9 @@ function aiThink(me,op){
   if(op.y<me.y-40&&dist<60&&R()<.5){hold({jump:true},8);press(me,'jump');return;}
   if(op.y>me.y+30&&me.onSoft&&R()<.5){tap(me,'down');return;}
   if(me.meter>=100&&dist<110&&Math.abs(dy)<24&&R()<.6){if(me.face!==fdir){h[toward]=true;return;}press(me,'super');return;}
+  {const cs=qccCloseSig(me);if(cs&&cs!=='glide'&&dist<70&&Math.abs(dy)<30&&me.onGround&&R()<P.proj*.6){if(me.face!==fdir){h[toward]=true;return;}press(me,'special');return;}}
   if(dist>110){
-    if(me.projCD<=0&&R()<P.proj&&Math.abs(dy)<30&&!me.c.tele){if(me.face!==fdir){h[toward]=true;A.cool=1;return;}A.chargeWant=R()<.35?Math.round(rr(15,55)):0;press(me,'special');return;}
+    if(me.projCD<=0&&R()<P.proj&&Math.abs(dy)<30&&!me.c.tele&&!qccCloseSig(me)){if(me.face!==fdir){h[toward]=true;A.cool=1;return;}A.chargeWant=R()<.35?Math.round(rr(15,55)):0;press(me,'special');return;}
     if(me.c.tele&&me.projCD<=0&&R()<.25&&op.onGround){press(me,'special');return;}
     if(R()<P.aggro+.25)set(R()<.3?'dash':'approach',20+R()*30);else set('home',10);
   }else if(dist>34){
