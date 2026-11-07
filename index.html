@@ -115,10 +115,10 @@ body.playing #tpause{display:block}
   </div>
 </div>
 
-<script>window.QCC_V="20261107052657";window.qv=u=>u+(u.includes("?")?"&":"?")+"v="+window.QCC_V;</script>
-<script src="rig.js?v=20261107052657"></script>
-<script src="roster.js?v=20261107052657"></script>
-<script src="qcc-data.js?v=20261107052657"></script>
+<script>window.QCC_V="20261107084449";window.qv=u=>u+(u.includes("?")?"&":"?")+"v="+window.QCC_V;</script>
+<script src="rig.js?v=20261107084449"></script>
+<script src="roster.js?v=20261107084449"></script>
+<script src="qcc-data.js?v=20261107084449"></script>
 <script>
 // Queen City Clash: the engine below starts once the fighter rigs (small .js files) are in;
 // their painted parts stream in afterwards.
@@ -1075,6 +1075,24 @@ function qccSkyFill(i) {
     e = QSE[i] = { top: px(c.width >> 1, 2), bot: px(c.width >> 1, c.height - 3) }; } catch (err) { e = { top: "#1a1430", bot: "#1a1430" }; } }
   ctx.fillStyle = e.top; ctx.fillRect(-2000, -3000, W + 4000, 3000 + H / 2);
   ctx.fillStyle = e.bot; ctx.fillRect(-2000, H / 2, W + 4000, 3000);
+}
+// (round 6) Holding ATTACK charges a smash. Scarf Kid only charged when a direction was pressed WITH attack:
+// a held ATTACK on its own gave a jab, and a held ATTACK while running (stick held) gave a dash attack, and
+// neither charges, so a player who just holds the button never saw a charge. Now, on the ground, if ATTACK
+// stays down through the first 10 frames of a jab or dash attack, it turns into a smash wind-up that charges
+// while held: stick up = up smash, stick down = low sweep, otherwise the side smash. Taps still jab.
+const QHOLD = 10, QHOLDM = { jab: 1, jab2: 1, jab3: 1, dashatk: 1 };
+function qccHoldSmash(f, h) {
+  if (!QHOLDM[f.mname] || !f.human) return false;
+  if (f.t === 0) f.qHeld = 0;
+  f.qHeld = h.attack && f.qHeld >= 0 ? f.qHeld + 1 : -1;   // -1 = let go during this move: no smash
+  const m = f.move, end = m.st + m.ac + m.rc;
+  if (!f.onGround || f.qHeld < Math.min(QHOLD, end - 1)) return false;
+  const ax = axis(f);
+  if (ax) f.face = ax;
+  f.qHeld = -1;
+  startMove(f, h.up ? "upa" : h.down ? "downa" : "side");
+  return true;
 }
 // charging: sparks gather, and a full charge says so
 function qccChargeFx(f) {
@@ -2450,6 +2468,7 @@ function updFighter(f,o,live){
     case'revive':{grav=false;f.vx=f.vy=0;f.t++;if(f.t>150||(f.t>20&&(ax||L.down||L.up||bb))){f.state='air';if(bb!=='jump'&&bb!=='attack'&&bb!=='special')f.buf=null;}break;}
     case'attack':{
       const m=f.move;
+      if(qccHoldSmash(f,h))break;
       if(bb==='super'&&f.t<6&&f.meter>=100){f.buf=null;startMove(f,'super');break;}
       if(bb==='shield'&&m.air&&!f.onGround){f.buf=null;f.lcT=G.frame;}
       if(m.charge&&f.t===m.st-1&&h[m.chargeBtn||'attack']&&f.chargeT<60&&(f.onGround||!m.sig)){f.chargeT++;f.charge=1+f.chargeT/60*.5;f.vx*=.8;qccChargeFx(f);if(f.chargeT%5===0){burst(f.x+rr(-10,10),f.y-rr(10,40),2,['#ffffff',c.aura],.8,10,2,-.05);SFX.charge();}break;}
@@ -3335,7 +3354,7 @@ function drawHowtoPM(){
     [['ATTACK','#d9468f'],['SPECIAL','#3346e0'],['JUMP','#6b54b0'],['SHIELD','#1b8f80']].forEach(([l,c],i)=>{const x=110+(i%2)*380,y=440+(i>>1)*150;ctx.fillStyle='#000';ctx.fillRect(x,y+8,360,120);ctx.fillStyle=c;ctx.fillRect(x,y,360,120);txt(l,x+180,y+60,44,'#ffffff','center',false);});
     txt('SUPER LIGHTS UP WHEN YOUR METER IS FULL',480,800,26,'#ffe066');txt('TURN SIDEWAYS FOR A BIGGER SCREEN',480,850,24,'#cfc6ef');
   }else if(P.grid){
-    const rows=[['ALONE','JAB COMBO','SIGNATURE'],['STICK ↔','SMASH','DASH STRIKE'],['STICK ↑','UP SMASH','FLY UP'],['STICK ↓','LOW SWEEP','DOWN SPECIAL']];
+    const rows=[['ALONE','JAB · HOLD = SMASH','SIGNATURE'],['STICK ↔','SMASH','DASH STRIKE'],['STICK ↑','UP SMASH','FLY UP'],['STICK ↓','LOW SWEEP','DOWN SPECIAL']];
     txt('ATTACK',520,230,32,'#ff9ad0');txt('SPECIAL',800,230,32,'#7fe0ff');
     rows.forEach((r,i)=>{const y=330+i*120;if(!(i%2)){ctx.fillStyle='rgba(255,255,255,.06)';ctx.fillRect(40,y-55,880,110);}txt(r[0],70,y,30,'#ffe9a8','left',false);txt(r[1],520,y,28,'#ffffff');txt(r[2],800,y,28,'#ffffff');});
     let y=wrap('Hold ATTACK to charge a smash. Every fighter\'s specials are its own: pause to see them.',60,860,840,26,'#cfc6ef',40);
@@ -3365,7 +3384,7 @@ function drawHowto(){
     txt('ESC = PAUSE   ·   H = THIS SCREEN',480,420,12,'#9d93c2');
   }else if(P.grid){
     const t=TOUCH?['ATTACK','SPECIAL','—','STICK ↔','STICK ↑','STICK ↓']:['J  ATTACK','K  SPECIAL','ALONE','A / D +','W +','S +'];
-    const rows=[[t[2],'JAB COMBO','SIGNATURE MOVE'],[t[3],'SMASH (HOLD TO CHARGE)','DASH STRIKE'],[t[4],'UP SMASH','FLY UP (RECOVERY)'],[t[5],'LOW SWEEP','DOWN SPECIAL']];
+    const rows=[[t[2],'JAB · HOLD = SMASH','SIGNATURE MOVE'],[t[3],'SMASH (HOLD TO CHARGE)','DASH STRIKE'],[t[4],'UP SMASH','FLY UP (RECOVERY)'],[t[5],'LOW SWEEP','DOWN SPECIAL']];
     txt(t[0],460,100,15,'#ff9ad0');txt(t[1],730,100,15,'#7fe0ff');
     rows.forEach((r,i)=>{const y=150+i*56;if(!(i%2)){ctx.fillStyle='rgba(255,255,255,.05)';ctx.fillRect(110,y-24,740,48);}txt(r[0],140,y,15,'#ffe9a8','left',false);txt(r[1],460,y,13,'#ffffff','center',false);txt(r[2],730,y,13,'#ffffff','center',false);});
     txt(TOUCH?'SHIELD + STICK = ROLL / DODGE   ·   SHIELD + ATTACK = GRAB':'L + A/D = ROLL   ·   L + S = DODGE   ·   L + J = GRAB',480,400,12,'#cfc6ef');
@@ -3393,9 +3412,9 @@ function moveList(f,x,y,k){
   k=k||1;const c=f.c,N=c.names;
   ctx.fillStyle='rgba(20,14,40,.9)';ctx.fillRect(x-24*k,y-34*k,500*k,452*k);
   portrait(c,x,y,30*k,1);txt(c.name+'  ·  MOVES',x+26*k,y,17*k,'#ffe9a8','left');
-  const rows=[['{A}',N.jab],['{R} + {A}',N.side],['{U} + {A}',N.upa],['{D} + {A}',N.downa],['AIR {A}',N.nair],['AIR {R} + {A}',N.fair],['AIR {U} + {A}',N.uair],['AIR {D} + {A}',N.dair],
-    ['{S}',c.sp[0]+(c.proj&&!c.mv.nspec.sig?'  (HOLD = BIGGER)':'')],['{R} + {S}',c.sp[1]],['{U} + {S}',c.sp[2]+'  (RECOVERY)'],['{D} + {S}',c.sp[3]],['{X}',c.sup+'  (SUPER)']];
-  rows.forEach(([kk,n],i)=>{const yy=y+(34+i*28)*k;if(i%2){ctx.fillStyle='rgba(255,255,255,.04)';ctx.fillRect(x-14*k,yy-13*k,480*k,26*k);}txt(keyTok(kk),x,yy,11*k,i<8?'#ff9ad0':i<12?'#7fe0ff':'#ffe066','left',false);txt(n||'',x+190*k,yy,12*k,'#ffffff','left',false);});
+  const rows=[['{A}',N.jab+'  (HOLD = SMASH)'],['{R} + {A}',N.side+'  (HOLD = CHARGE)'],['{U} + {A}',N.upa],['{D} + {A}',N.downa],['IN AIR: {A}',N.nair],['IN AIR: {R} + {A}',N.fair],['IN AIR: {U} + {A}',N.uair],['IN AIR: {D} + {A}',N.dair],
+    ['{S}',c.sp[0]+(c.mv.nspec.charge&&!c.tele?'  (HOLD = BIGGER)':'')],['{R} + {S}',c.sp[1]],['{U} + {S}',c.sp[2]+'  (RECOVERY)'],['{D} + {S}',c.sp[3]],['{X}',c.sup+'  (SUPER)']];
+  rows.forEach(([kk,n],i)=>{const yy=y+(34+i*28)*k;if(i%2){ctx.fillStyle='rgba(255,255,255,.04)';ctx.fillRect(x-14*k,yy-13*k,480*k,26*k);}txt(keyTok(kk),x,yy,11*k,i<8?'#ff9ad0':i<12?'#7fe0ff':'#ffe066','left',false);txt(n||'',x+215*k,yy,12*k,'#ffffff','left',false);});
 }
 const PMENU=()=>['RESUME','HOW TO PLAY',G.mode==='training'?'RESET %':'RESTART FIGHT','QUIT TO MENU'];
 function drawTexts(){
