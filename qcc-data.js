@@ -60,7 +60,7 @@
       sp: ["GLIDE", "BANANA DASH", "WING FLAP", "BANANA PEEL"], sup: "MONKEY BUSINESS",
       names: { jab: "QUICK SLAPS", side: "SWING CUT", upa: "TAIL FLIP", downa: "LOW SWIPE", nair: "BARREL ROLL", fair: "TRIPLE SCRATCH", uair: "SKY KICK", dair: "DIVE KICK" },
       moves: {
-        nspec: { sig: "glide", tele: 0, follow: null, proj: 0, charge: 0, st: 4, ac: 80, rc: 6, p0: "jump", p1: "special" },
+        nspec: { sig: "glide", tele: 0, follow: null, proj: 0, charge: 1, chargeBtn: "special", st: 4, ac: 80, rc: 6, p0: "jump", p1: "special" },
         sspec: { dash: 1, st: 5, ac: 14, rc: 14, multi: 5, dmg: 2, hb: [2, -40, 24, 26], bkb: 1.8, kbg: 0, ang: 50, last: { dmg: 4, bkb: 3.4, kbg: 4, ang: 40 }, p0: "crouch", p1: "kick" },
         uspec: RISE({ free: 1, ac: 12, rc: 4, dmg: 5, hb: [-14, -56, 44, 24], bkb: 3, kbg: 3, ang: 80, p0: "jump" }),
         dspec: { counter: 0, sig: "toss", st: 6, ac: 1, rc: 14, ai: "range", aiCD: 220, p0: "windup", p1: "blast",
@@ -79,7 +79,7 @@
       sp: ["STAMP SLAM", "DRAWER RUSH", "PAPER STORM", "PAPERWORK"], sup: "AUDIT",
       names: { jab: "DRAWER JABS", side: "DRAWER SLAM", upa: "TOP DRAWER", downa: "QUAKE STOMP", nair: "SPIN", fair: "HAMMER DRAWER", uair: "UPPER FILE", dair: "ANVIL DROP" },
       moves: {
-        nspec: { sig: "stamp", proj: 0, charge: 0, st: 6, ac: 30, rc: 20, dmg: 15, hb: [-24, -20, 48, 22], bkb: 5, kbg: 5.2, ang: 60, armor: 1, p0: "special", p1: "slam" },
+        nspec: { sig: "stamp", proj: 0, charge: 1, chargeBtn: "special", st: 6, ac: 30, rc: 20, dmg: 15, hb: [-24, -20, 48, 22], bkb: 5, kbg: 5.2, ang: 60, armor: 1, p0: "special", p1: "slam" },
         sspec: { dash: 1, armor: 1, st: 8, ac: 12, rc: 20, dmg: 13, hb: [4, -40, 40, 26], bkb: 4.6, kbg: 5, ang: 38, p0: "windup", p1: "punch" },
         uspec: RISE({ ac: 18, multi: 4, dmg: 2, hb: [-24, -72, 48, 62], bkb: 2.4, kbg: 0, ang: 90, last: { dmg: 5, bkb: 3.6, kbg: 5, ang: 85 }, fx: "column", fxCol: "#e8edf2" }),
         dspec: { counter: 0, sig: "toss", st: 10, ac: 1, rc: 22, ai: "range", aiCD: 150, p0: "windup", p1: "blast",
@@ -90,7 +90,7 @@
       sp: ["BURROW", "TAIL SLIDE", "BREACH", "FLUKE SMASH"], sup: "DEEP DIVE",
       names: { jab: "TAIL TAPS", side: "TAIL SLAP", upa: "SPOUT", downa: "FLUKE SWEEP", nair: "ROLL", fair: "SPLASH", uair: "TAIL FLIP", dair: "BELLY FLOP" },
       moves: {
-        nspec: { sig: "burrow", proj: 0, charge: 0, st: 6, ac: 40, rc: 18, dmg: 13, bkb: 4.6, kbg: 6.2, ang: 85, p0: "special", p1: "rise" },
+        nspec: { sig: "burrow", proj: 0, charge: 1, chargeBtn: "special", st: 6, ac: 40, rc: 18, dmg: 13, bkb: 4.6, kbg: 6.2, ang: 85, p0: "special", p1: "rise" },
         sspec: { dash: 1, st: 7, ac: 14, rc: 18, dmg: 13, hb: [0, -40, 44, 34], bkb: 4.8, kbg: 5.6, ang: 30, p0: "windup", p1: "bair" },
         uspec: RISE({ ac: 14, dmg: 8, hb: [-12, -58, 40, 34], bkb: 4, kbg: 4.6, ang: 80, fx: "column", fxCol: "#5b8fd6" }),
         dspec: { counter: 0, st: 12, ac: 5, rc: 24, dmg: 14, hb: [-50, -30, 100, 30], bkb: 4.6, kbg: 6, ang: 70, quake: 1, armor: 1, ai: "close", aiR: 60, aiCD: 150, p0: "windup", p1: "slam" } },
@@ -120,7 +120,7 @@
       sp: ["PICKLE + DONUT", "SNOW REPEL", "SUGAR PILLAR", "SNOWBALL"], sup: "SUGAR HIGH",
       names: { jab: "SNOW PATS", side: "REPEL", upa: "PILLAR OF SUGAR", downa: "SNOW DRIFT", nair: "FLURRY", fair: "FLYING KICK", uair: "SKY KICK", dair: "FALLING SNOW" },
       moves: {
-        nspec: { sig: "assist", proj: 0, charge: 0, st: 12, ac: 1, rc: 18, p0: "windup", p1: "special" },
+        nspec: { sig: "assist", proj: 0, charge: 1, chargeBtn: "special", st: 12, ac: 1, rc: 18, p0: "windup", p1: "special" },
         sspec: { dash: 1, st: 6, ac: 14, rc: 16, dmg: 8, hb: [4, -40, 26, 30], bkb: 5, kbg: 6, ang: 22, p0: "windup", p1: "blast" },
         uspec: RISE({ dmg: 8, hb: [-10, -110, 30, 110], bkb: 3.6, kbg: 5, ang: 88, fx: "column", fxCol: "#bfe6ff", p1: "pillar" }),
         dspec: { counter: 0, sig: "snowball", st: 10, ac: 1, rc: 20, ai: "range", aiCD: 180, p0: "windup", p1: "sweep" } },
@@ -150,7 +150,7 @@
       sp: ["SCATTER", "SWOOP CUT", "UPDRAFT", "CAW!"], sup: "THE FLOCK",
       names: { jab: "PECKS", side: "SWOOP CUT", upa: "UPDRAFT", downa: "TALON SWEEP", nair: "FLUTTER", fair: "TRIPLE PECK", uair: "SKY PECK", dair: "DIVE BOMB" },
       moves: {
-        nspec: { sig: "scatter", tele: 0, follow: null, proj: 0, charge: 0, st: 3, ac: 22, rc: 14, p0: "dodge", p1: "special" },
+        nspec: { sig: "scatter", tele: 0, follow: null, proj: 0, charge: 1, chargeBtn: "special", st: 3, ac: 22, rc: 14, p0: "dodge", p1: "special" },
         sspec: { dash: 1, st: 5, ac: 12, rc: 14, dmg: 9, hb: [-4, -44, 36, 22], bkb: 3.4, kbg: 4.6, ang: 40, p0: "guard", p1: "slash" },
         uspec: RISE({ multi: 4, dmg: 4, hb: [-18, -60, 46, 50], bkb: 2, kbg: 0, ang: 90, last: { dmg: 4, bkb: 3.4, kbg: 4.6, ang: 85 } }),
         dspec: { counter: 0, sig: "caw", st: 6, ac: 6, rc: 16, dmg: 2, hb: [-46, -58, 92, 58], bkb: 5.6, kbg: 0.6, ang: 25, ai: "close", aiR: 62, aiCD: 140, p0: "special", p1: "special" } },
