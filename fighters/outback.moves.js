@@ -1,0 +1,35 @@
+// The Outback: extra poses for Queen City Clash's full move set. Angles: degrees, clockwise, relative to the painted pose.
+extendFighter("outback", {
+  poses: {
+    crouch: { root: [0, 80], sq: [1.05, 0.9], torso: 4, legL_up: 50, legL_lo: -50, legR_up: -25, legR_lo: 35, armL_up: 6, armR_up: 10, armR_lo: -6 },
+    sweep: { root: [0, 80], sq: [1.04, 0.95], torso: -6, legL_up: 50, legL_lo: -50, legR_up: -10, legR_lo: -53, armL_up: -10, armR_up: 20, armR_lo: -10 },
+    upper: { root: [0, -40], sq: [0.95, 1.07], torso: -20, armR_up: -39, armR_lo: 4, armL_up: -10, armL_lo: 10, legL_up: -6, legR_up: 10, legR_lo: -10 },
+    kick: { root: [-10, -10], torso: -10, legR_up: -40, legR_lo: -47, legL_up: 6, armR_up: -30, armR_lo: -10, armL_up: -6 },
+    nair: { root: [0, -20], sq: [1.03, 1.03], legL_up: 20, legL_lo: -10, legR_up: -20, legR_lo: 10, armL_up: 30, armL_lo: 20, armR_up: -40, armR_lo: 30 },
+    bair: { root: [0, -10], torso: 15, legL_up: 60, legL_lo: 15, legR_up: 10, armR_up: -10, armL_up: -10 },
+    spike: { sq: [0.97, 1.04], legL_up: -25, legL_lo: 10, legR_up: 15, legR_lo: -15, armR_up: -60, armR_lo: 0, armL_up: -100, armL_lo: 60 },
+    slam: { root: [20, 60], sq: [1.04, 0.95], torso: 25, legL_up: 40, legL_lo: -40, legR_up: -15, legR_lo: 21, armR_up: 20, armR_lo: 30, armL_up: -20, armL_lo: 70 },
+    guard: { root: [0, 30], sq: [1.02, 0.97], torso: -4, legL_up: 25, legL_lo: -25, legR_up: 0, legR_lo: 0, armL_up: -30, armL_lo: -10, armR_up: -10, armR_lo: -20 },
+    dodge: { root: [-20, 70], sq: [0.94, 0.92], torso: -15, legL_up: 45, legL_lo: -45, legR_up: -20, legR_lo: 28, armL_up: 10, armL_lo: -10, armR_up: 20, armR_lo: -20 },
+    grab: { root: [15, 0], torso: 8, armR_up: -30, armR_lo: 80, armL_up: -62, armL_lo: 90, legL_up: 8, legR_up: -8 },
+    throw: { torso: 8, armR_up: -70, armR_lo: 30, armL_up: -120, armL_lo: 80 },
+    ledge: { root: [0, -150], armR_up: -120, armR_lo: 60, armL_up: -160, armL_lo: 100, legL_up: -20, legL_lo: 0, legR_up: 25, legR_lo: -15 },
+    // knocked flat on its back: for a car that means flipped onto its roof (a quarter turn would stand the car on its tail)
+    down: { root: [0, -179], hip: 180, legL_up: -30, legL_lo: 25, legR_up: 20, legR_lo: -20, armL_up: 30, armR_up: 30 },
+    special: { root: [40, 60], sq: [1.06, 0.95], torso: 25, legL_up: 40, legL_lo: -24, legR_up: -15, legR_lo: 15, armR_up: -30, armR_lo: 80, armL_up: -62, armL_lo: 90 },
+    rise: { root: [0, -40], sq: [0.94, 1.08], torso: -8, armR_up: -60, armR_lo: 0, armL_up: 10, legL_up: 20, legL_lo: 30, legR_up: 25, legR_lo: -10 },
+    win: { torso: -8, armR_up: -50, armR_lo: 0, armL_up: -100, armL_lo: 60 },
+  },
+  hit: {
+    strike: ["armR_lo", 1050, 280],
+    kick: ["legR_lo", 900, 700],
+    sweep: ["legR_lo", 920, 700],
+    upper: ["armR_lo", 1050, 250],
+    bair: ["legL_lo", 500, 740],
+    spike: ["legL_lo", 500, 740],
+    slam: ["armR_lo", 1045, 330],
+    grab: ["armR_lo", 1050, 280],
+    special: ["torso", 950, 300],
+    rise: ["armR_lo", 1050, 260],
+  },
+});

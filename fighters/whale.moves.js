@@ -1,0 +1,77 @@
+// Whale Tails: extra poses for Queen City Clash's full move set. Angles: degrees, clockwise, relative to the painted pose.
+// Bones are per twin (a_ = left twin, b_ = right twin, who throws the punches). <t>_lift / <t>_sink / <t>_slide
+// are the far-pivot "move" bones from whale.js: 0.1 degree is about 5 painting px.
+(() => {
+  // prefix a twin pose's keys: pre("a", { body: 4 }) -> { a_body: 4 }
+  const pre = (t, pose) => Object.fromEntries(Object.entries(pose).map(([k, v]) => [`${t}_${k}`, v]));
+  const twins = (shared, a, b) => ({ ...shared, ...pre("a", a), ...pre("b", b) });
+
+  extendFighter("whale", {
+    poses: {
+      crouch: twins({ root: [0, 30], sq: [1.04, 0.92] },
+        { sink: -1.1, body: 4, tail: -4, armL_up: 8, armR_up: -8, legL_up: 35, legL_lo: -35, legR_up: -35, legR_lo: 35 },
+        { sink: -1.1, body: 4, tail: -4, armL_up: 8, armR_up: -8, legL_up: 40, legL_lo: -40, legR_up: -35, legR_lo: 35 }),
+      sweep: twins({ root: [20, 30], sq: [1.04, 0.95] },
+        { sink: -0.9, body: 10, tail: -6, armR_up: 20, armR_lo: 10, legL_up: 35, legL_lo: -35, legR_up: -35, legR_lo: 35 },
+        { slide: -0.4, sink: -0.9, body: 12, tail: -8, armR_up: 15, armR_lo: 10, armL_up: -10, legL_up: 40, legL_lo: -40, legR_up: -45, legR_lo: 30 }),
+      upper: twins({ root: [0, -10], sq: [0.96, 1.06] },
+        { body: -4, tail: 20, armL_up: 90, armL_lo: 50, legL_up: 4, legR_up: -4 },
+        { lift: 1.0, body: 6, tail: 20, armR_up: -55, armR_lo: -15, armL_up: 15, legL_up: 10, legL_lo: 10, legR_up: -10, legR_lo: 10 }),
+      kick: twins({ root: [10, 0] },
+        { body: -6, armR_up: -20, armL_up: 20, legL_up: 6, legR_up: -6 },
+        { slide: -0.4, lift: 0.5, body: -22, tail: 10, armR_up: -40, armR_lo: -30, armL_up: 25, legR_up: -88, legR_lo: -5, legL_up: 15, legL_lo: 10 }),
+      nair: twins({ root: [0, -10], sq: [1.04, 1.04] },
+        { slide: 0.3, body: -12, tail: -10, armL_up: 50, armL_lo: 20, armR_up: -30, legL_up: 40, legL_lo: 10, legR_up: -30, legR_lo: -10 },
+        { slide: -0.3, body: 12, tail: 10, armR_up: -40, armR_lo: -10, armL_up: 30, legL_up: 30, legL_lo: 10, legR_up: -40, legR_lo: -10 }),
+      bair: twins({},
+        { slide: 0.3, lift: 0.3, body: 22, tail: -10, armL_up: 70, armL_lo: 10, armR_up: -20, legL_up: 88, legL_lo: 5, legR_up: 10 },
+        { body: 12, tail: -6, armR_up: -20, armL_up: -15, legL_up: 15, legR_up: 10 }),
+      spike: twins({ sq: [0.96, 1.06] },
+        { sink: 0.4, body: -4, tail: 6, armL_up: 90, armL_lo: 50, armR_up: -60, armR_lo: -20, legL_up: -8, legL_lo: 4, legR_up: 8, legR_lo: -4 },
+        { sink: 0.4, body: -4, tail: 6, armR_up: -70, armR_lo: -20, armL_up: 90, armL_lo: 50, legL_up: -8, legL_lo: 4, legR_up: 8, legR_lo: -4 }),
+      slam: twins({ root: [10, 0], sq: [1.04, 0.95] },
+        { sink: -1.0, body: 22, tail: -12, armL_up: -30, armR_up: 4, armR_lo: 10, legL_up: 35, legL_lo: -35, legR_up: -35, legR_lo: 35 },
+        { slide: -0.3, sink: -1.0, body: 25, tail: -14, armR_up: -10, armR_lo: 10, armL_up: -40, legL_up: 40, legL_lo: -40, legR_up: -35, legR_lo: 35 }),
+      guard: twins({ sq: [1.02, 0.97] },
+        { sink: -0.6, body: -4, armR_up: -30, armR_lo: -50, armL_up: 30, legL_up: 15, legL_lo: -15, legR_up: -15, legR_lo: 15 },
+        { sink: -0.6, body: -4, armR_up: -25, armR_lo: -70, armL_up: 20, legL_up: 15, legL_lo: -15, legR_up: -15, legR_lo: 15 }),
+      dodge: twins({ root: [-20, 15], sq: [0.94, 0.92] },
+        { sink: -1.2, body: -14, tail: 8, armL_up: 25, armL_lo: -10, armR_up: 30, legL_up: 25, legL_lo: -25, legR_up: -25, legR_lo: 25 },
+        { sink: -1.2, body: -16, tail: 8, armR_up: 40, armR_lo: 30, armL_up: 25, legL_up: 25, legL_lo: -25, legR_up: -25, legR_lo: 25 }),
+      grab: twins({ root: [15, 0] },
+        { body: 8, tail: -4, armR_up: -10, armL_up: -20, legL_up: 8, legR_up: -8 },
+        { slide: -0.3, body: 10, tail: -6, armR_up: -12, armR_lo: -4, armL_up: -30, legL_up: 10, legR_up: -10 }),
+      throw: twins({},
+        { body: 8, armL_up: 110, armL_lo: 20, armR_up: -50 },
+        { body: 10, tail: -6, armR_up: -55, armR_lo: -15, armL_up: 90, armL_lo: 50 }),
+      ledge: twins({ root: [0, -120] },
+        { body: -10, tail: -15, armL_up: 90, armL_lo: 50, armR_up: -80, armR_lo: -10, legL_up: 10, legL_lo: 15, legR_up: -5, legR_lo: 15 },
+        { body: -10, tail: -15, armR_up: -80, armR_lo: -10, armL_up: 90, armL_lo: 50, legL_up: 10, legL_lo: 15, legR_up: -5, legR_lo: 15 }),
+      down: twins({ root: [40, -335], hip: -88 },
+        { body: 14, tail: 45, armL_up: -100, armL_lo: 30, armR_up: 60, legL_up: -50, legR_up: -10 },
+        { slide: 11.2, lift: -12, body: 14, tail: 45, armL_up: -100, armL_lo: 30, armR_up: 60, legL_up: -50, legR_up: -10 }),
+      // the root bone tips both twins forward together (legs and all); slide/lift put each twin back on its own spot
+      special: twins({ root: [20, 0], hip: 60 },
+        { slide: -2.53, lift: -5.29, body: 12, tail: -70, armL_up: -40, armR_up: -60, armR_lo: -10, legL_up: 40, legL_lo: 10, legR_up: 70, legR_lo: 10 },
+        { slide: 3.74, lift: 5.5, tail: -70, armL_up: -40, armR_up: -60, armR_lo: -10, legL_up: 40, legL_lo: 10, legR_up: 70, legR_lo: 10 }),
+      rise: twins({ root: [0, -40], sq: [0.92, 1.1] },
+        { lift: 1.0, body: -4, tail: 6, armL_up: 90, armL_lo: 50, legL_up: 20, legL_lo: 20, legR_up: 10, legR_lo: 20 },
+        { lift: 1.6, body: -6, tail: 8, armR_up: -70, armR_lo: -20, armL_up: 20, legL_up: 20, legL_lo: 20, legR_up: 10, legR_lo: 20 }),
+      win: twins({},
+        { body: -6, tail: 6, armL_up: 90, armL_lo: 50, armR_up: -10 },
+        { body: -6, tail: 6, armR_up: -70, armR_lo: -30, armL_up: 15 }),
+    },
+    hit: {
+      strike: ["b_armR_lo", 1305, 465],
+      kick: ["b_legR_lo", 1160, 668],
+      sweep: ["b_armR_lo", 1320, 470],
+      upper: ["b_tail", 900, 100],
+      bair: ["a_legL_lo", 230, 688],
+      spike: ["b_legL_lo", 895, 688],
+      slam: ["b_armR_lo", 1320, 470],
+      grab: ["b_armR_lo", 1300, 465],
+      special: ["b_body", 1180, 420],
+      rise: ["b_armR_lo", 1340, 465],
+    },
+  });
+})();
