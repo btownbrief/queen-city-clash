@@ -115,10 +115,10 @@ body.playing #tpause{display:block}
   </div>
 </div>
 
-<script>window.QCC_V="20261107044104";window.qv=u=>u+(u.includes("?")?"&":"?")+"v="+window.QCC_V;</script>
-<script src="rig.js?v=20261107044104"></script>
-<script src="roster.js?v=20261107044104"></script>
-<script src="qcc-data.js?v=20261107044104"></script>
+<script>window.QCC_V="20261107052657";window.qv=u=>u+(u.includes("?")?"&":"?")+"v="+window.QCC_V;</script>
+<script src="rig.js?v=20261107052657"></script>
+<script src="roster.js?v=20261107052657"></script>
+<script src="qcc-data.js?v=20261107052657"></script>
 <script>
 // Queen City Clash: the engine below starts once the fighter rigs (small .js files) are in;
 // their painted parts stream in afterwards.
@@ -186,8 +186,9 @@ function qccChar(c, k) {
 var QW = 1.3, QV = 1.15, QJ = 1.3, QZMIN = 0.72, QPX = 110, QBK = 480 / (480 + 2 * 110);
 function qccWiden(L) {
   const M = L.main, X = (x) => 240 + (x - 240) * QW, Y = (y) => M.y + (y - M.y) * QV;
+  const soft = L.soft.length ? L.soft : [{ x0: 186, x1: 294, y: 136 }];   // round 5: every arena has at least one platform (Scarf Kid's flat stage had none)
   return { main: { x0: X(M.x0), x1: X(M.x1), y: M.y, bot: M.bot }, hazard: L.hazard,
-    soft: L.soft.map((P) => Object.assign({}, P, { x0: X(P.x0), x1: X(P.x1), y: Y(P.y), move: P.move && Object.assign({}, P.move, { ax: P.move.ax * QW, ay: P.move.ay * QV }) })) };
+    soft: soft.map((P) => Object.assign({}, P, { x0: X(P.x0), x1: X(P.x1), y: Y(P.y), move: P.move && Object.assign({}, P.move, { ax: P.move.ax * QW, ay: P.move.ay * QV }) })) };
 }
 function qccCamX(cx, hw) { const r = 270 * QW; return hw >= r ? 240 : clamp(cx, 240 - r + hw, 240 + r - hw); }   // Scarf Kid let the view go 30 past the 480-wide world
 // The phone's real screen height, locked: it changes only when the phone turns (the width changes), when the
@@ -337,6 +338,10 @@ function qccDrawFighter(f, tint) {
   const o = { expr: rigExpr(f), costume: c.skin || 0 };
   if (tint) { if (tint === "#ffffff") o.flash = 1.3; else o.solid = [tint, tint === "#0d0a1a" || tint === "#ff2b3b" ? 1 : 0.55]; }
   const hide = sigHidden(f); if (hide) o.hide = hide;
+  if (f.state === "attack" && f.move && f.move.charge && f.chargeT > 0) {   // round 5: charging glows, bigger the longer you hold
+    const k = Math.min(1, f.chargeT / 59), r = 26 + 26 * k + (G.frame % 6 < 3 ? 2 : 0), g = ctx.createRadialGradient(0, -26, 2, 0, -26, r);
+    g.addColorStop(0, rgba("#ffffff", 0.5 + 0.3 * k)); g.addColorStop(0.45, rgba(c.aura, 0.35 + 0.3 * k)); g.addColorStop(1, rgba(c.aura, 0));
+    ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, -26, r, 0, 7); ctx.fill(); ctx.restore(); }
   RIG.draw(ctx, R, f.rg, 0, 0, c.rk / s, 1, o);
   ctx.restore();
   if (G.debugBoxes) drawDebugBoxes(f);
@@ -428,7 +433,7 @@ function qccMakeSky(i, into) {
 var LMIMG = {};
 function landmarkImg(i, L) {   // load once; redraw this area's sky when it arrives
   const src = L.src;
-  if (!LMIMG[src]) { const im = new Image(); LMIMG[src] = im; im.onload = () => { if (SKY[i]) qccMakeSky(i, SKY[i]); }; im.src = (window.qv || ((u) => u))(src); }
+  if (!LMIMG[src]) { const im = new Image(); LMIMG[src] = im; im.onload = () => { if (SKY[i]) { qccMakeSky(i, SKY[i]); QSE[i] = null; } }; im.src = (window.qv || ((u) => u))(src); }
   return LMIMG[src];
 }
 var TINTS = {};
@@ -609,15 +614,16 @@ var SIG = {
   hook(f, m, x) {
     if (!f.onGround && f.t === 1) { if (f.projCD <= 0 && f.c.proj) { spawnProj(f); f.projCD = f.c.proj.cd; } f.t = m.st + m.ac; return; }   // round 3: in the air, a fireball
     if (f.t === m.st) { G.projs = G.projs.filter((p) => !(p.owner === f && p.kind === "hook"));
-      const s = f.c.s; G.projs.push({ kind: "hook", hide: "hook", x: f.x + f.face * 24 * s, y: f.y - 30 * s, vx: f.face * 7.5, r: 6, col: "#c9c9d6", core: "#ffffff", owner: f, t: 0, life: 60, out: 18, noclash: true });
+      const s = f.c.s; const hk = clamp((f.charge - 1) * 2, 0, 1); G.projs.push({ kind: "hook", hide: "hook", x: f.x + f.face * 24 * s, y: f.y - 30 * s, vx: f.face * 7.5, r: 6, col: "#c9c9d6", core: "#ffffff", owner: f, t: 0, life: 60 + hk * 24, out: 18 + Math.round(hk * 14), noclash: true });   // round 5: hold for a longer throw
       SFX.throw(); }
   },
   // Champ: rears up, crashes down, and a big wave rolls along the floor
   lakewave(f, m) {
     if (f.t === m.st) { G.projs = G.projs.filter((p) => !(p.owner === f && p.kind === "lakewave"));
       const wy = floorBelow(f.x + f.face * 18 * f.c.s, f.y - 2);
-      G.projs.push({ kind: "lakewave", x: f.x + f.face * 18 * f.c.s, y: (wy == null ? f.y : wy) - 6, vx: f.face * 4.2, r: 18, col: "#4fd1c5", core: "#e0fffb", owner: f, t: 0, life: 90, wave: true,
-        m: { dmg: 11, bkb: 4, kbg: 4.4, ang: 60, proj: 1 } });
+      const k = clamp((f.charge - 1) * 2, 0, 1);   // round 5: hold for a bigger wave
+      G.projs.push({ kind: "lakewave", x: f.x + f.face * 18 * f.c.s, y: (wy == null ? f.y : wy) - 6, vx: f.face * (4.2 + k), r: 18 + k * 8, col: "#4fd1c5", core: "#e0fffb", owner: f, t: 0, life: 90 + k * 30, wave: true,
+        m: { dmg: Math.round(11 + k * 7), bkb: 4 + k, kbg: 4.4 + k, ang: 60, proj: 1 } });
       G.shake = Math.max(G.shake, 5); SFX.heavy(); burst(f.x + f.face * 18, f.y - 4, 18, ["#4fd1c5", "#e0fffb", "#2a8a9e"], 2.6, 18, 3, 0.08); }
   },
   // Flying Monkey: hold special to glide (once per jump)
@@ -694,6 +700,10 @@ var SIG = {
   },
   // Syrup Jug: pour a sticky puddle on the floor ahead
   puddle(f, m) {
+    if (f.t === m.st && f.charge > 1.12) {   // round 5: held, the syrup is flung as a glob (farther the longer you held) and spreads where it lands
+      const k = clamp((f.charge - 1) * 2, 0, 1); G.projs = G.projs.filter((p) => !(p.owner === f && (p.kind === "puddle" && !p.small || p.look === "glob")));
+      G.projs.push({ kind: "toss", look: "glob", x: f.x + f.face * 16 * f.c.s, y: f.y - 30 * f.c.s, vx: f.face * (2.4 + k * 3.2), vy: -3.4, g: 0.3, r: 7, owner: f, t: 0, life: 120, m: { dmg: 6, bkb: 2.6, kbg: 2.2, ang: 50, proj: 1 }, trap: { type: "puddle" }, col: "#c8781f", core: "#ffe0a8", keep: true, noclash: true, spin: 0 });
+      SFX.throw(); return; }
     if (f.t === m.st) {
       const s = f.c.s, px = f.x + f.face * 30 * s, py = floorBelow(px, f.y - 2);
       G.projs = G.projs.filter((p) => !(p.owner === f && p.kind === "puddle"));
@@ -929,9 +939,10 @@ Object.assign(SIG, {
   flash(f, m) {
     if (f.t === m.st) {
       SFX.spark(); G.white = Math.max(G.white, 2);
-      const s = f.c.s, box = boxAt(f, 4, -54, 96, 54);
-      for (let i = 0; i < 16; i++) G.parts.push({ x: f.x + f.face * 16 * s, y: f.y - rr(18, 36) * s, vx: f.face * rr(3, 6), vy: rr(-1.2, 1.2), life: 16, max: 16, col: R() < 0.6 ? "#fff8c0" : "#ffffff", size: 3, grav: 0 });
-      for (const v of G.f) { if (v === f) continue; const hr = hurt(v); if (hr && overlap(box, hr) && qccStun(v, 46, "DAZZLED!", "#fff8c0")) { v.pct += 3; f.connected = true; } }
+      const k = clamp((f.charge - 1) * 2, 0, 1), s = f.c.s, box = boxAt(f, 4, -54, 96 + k * 110, 54);   // round 5: hold for HIGH BEAMS (twice the reach)
+      if (k > 0.6) popup("HIGH BEAMS!", f.x, f.y - 74, 14, "#fff8c0", 28);
+      for (let i = 0; i < 16 + k * 14; i++) G.parts.push({ x: f.x + f.face * 16 * s, y: f.y - rr(18, 36) * s, vx: f.face * rr(3, 6 + k * 5), vy: rr(-1.2, 1.2), life: 16 + k * 10, max: 16 + k * 10, col: R() < 0.6 ? "#fff8c0" : "#ffffff", size: 3, grav: 0 });
+      for (const v of G.f) { if (v === f) continue; const hr = hurt(v); if (hr && overlap(box, hr) && qccStun(v, Math.round(46 + k * 20), "DAZZLED!", "#fff8c0")) { v.pct += 3; f.connected = true; } }
     }
   },
   undertow(f, m, x) {
@@ -976,7 +987,8 @@ Object.assign(SIGP, {
         landHit(p.owner, v, p.m, p.x - (Math.sign(p.vx) || 1) * 20, p.x, p.y); p.dead = true; burst(p.x, p.y, 10, [p.col, "#ffffff"], 2, 14); return true; }
       if (v && v.c.deflect) { p.dead = true; popup("NOPE", v.x, v.y - 62, 14, "#4ff0ff", 30); SFX.block(); return true; }
       if (p.vy > 0) { const fy = floorBelow(p.x, p.y - p.vy - 1); if (fy != null && p.y >= fy) {
-        if (p.trap) { p.landed = true; p.y = fy; p.vx = p.vy = 0; p.t = 0; p.life = p.trap.life; SFX.land && SFX.land(); }
+        if (p.trap && p.trap.type === "puddle") { p.dead = true; G.projs.push({ kind: "puddle", x: p.x, y: fy, vx: 0, r: 22, col: "#c8781f", core: "#ffe0a8", owner: p.owner, t: 0, life: 420, noclash: true }); burst(p.x, fy - 3, 12, ["#c8781f", "#ffe0a8"], 1.8, 14, 2, 0.1); SFX.roll(); }
+        else if (p.trap) { p.landed = true; p.y = fy; p.vx = p.vy = 0; p.t = 0; p.life = p.trap.life; SFX.land && SFX.land(); }
         else { p.dead = true; burst(p.x, fy - 3, 12, [p.col, "#ffffff"], 2.2, 14, 2, 0.1); } } }
     } else {
       const fy = floorBelow(p.x, p.y - 8); if (fy == null || Math.abs(fy - p.y) > 8) { p.landed = false; p.vy = 0; return true; } p.y = fy;
@@ -1007,6 +1019,7 @@ Object.assign(SIGD, {
     const L = p.look; ctx.save(); ctx.translate(p.x, p.y);
     if (!p.landed) ctx.rotate(p.spin);
     if (L === "banana") { ctx.fillStyle = "#ffd23d"; ctx.strokeStyle = "#7a5a10"; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.arc(0, p.landed ? -2 : 0, 7, 0.2, Math.PI - 0.2); ctx.arc(0, p.landed ? -5 : -3, 6, Math.PI - 0.3, 0.3, true); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+    else if (L === "glob") { ctx.fillStyle = "#c8781f"; ctx.beginPath(); ctx.ellipse(0, 0, p.r, p.r * 0.8, 0, 0, 7); ctx.fill(); ctx.fillStyle = "rgba(255,224,168,.8)"; ctx.beginPath(); ctx.arc(-2, -2, 2, 0, 7); ctx.fill(); }
     else if (L === "coconut") { ctx.fillStyle = "#6b4226"; ctx.beginPath(); ctx.arc(0, 0, p.r, 0, 7); ctx.fill(); ctx.fillStyle = "#3a2414"; for (const a of [0.6, 1.4, 2.2]) { ctx.beginPath(); ctx.arc(Math.cos(a) * 3 - 1, Math.sin(a) * 3 - 3, 1.2, 0, 7); ctx.fill(); } }
     else if (L === "boot") { ctx.fillStyle = "#f2a01e"; ctx.fillRect(-8, p.landed ? -6 : -5, 16, 6); ctx.fillStyle = "#2a2a30"; ctx.beginPath(); ctx.arc(0, p.landed ? -5 : -2, 5, Math.PI, 0); ctx.fill(); ctx.fillStyle = "#ffe9a8"; ctx.fillRect(-2, p.landed ? -5 : -4, 4, 3);
       if (p.landed && G.frame % 30 < 15) { ctx.fillStyle = "rgba(255,80,40,.8)"; ctx.beginPath(); ctx.arc(0, -10, 1.6, 0, 7); ctx.fill(); } }
@@ -1021,6 +1034,54 @@ Object.assign(SIGD, {
     ctx.fillStyle = "rgba(160,190,220,.6)"; for (let i = 0; i < 3; i++) { const a = p.t * 0.2 * Math.sign(p.vx) + i * 2.1; ctx.beginPath(); ctx.arc(p.x + Math.cos(a) * p.r * 0.55, p.y + Math.sin(a) * p.r * 0.55, p.r * 0.12, 0, 7); ctx.fill(); }
   },
 });
+/* ---------- round 5: the camera keeps everyone in frame ----------
+   Stephen went out of frame on double jumps. Like Smash, the camera now zooms out as far as it has to so every
+   fighter (head included, plus where they are heading in the next few frames) stays on screen. It keeps Scarf
+   Kid's framing otherwise: room around the fighters, a slight pull toward the stage, the same close-up limit.
+   Zooming out is quick and zooming in is slow, and if the smoothing ever falls behind it catches up at once. */
+function qccUpdCam(snap) {
+  const B = [];
+  if (G.freeze > 0 && G.freezeBy) { const f = G.freezeBy; B.push([f.x, f.x, f.y - 50, f.y]); }
+  else for (const f of G.f) {
+    if (f.state === "dead" || f.hidden) continue;
+    const s = f.c.s || 1, ax = f.x + f.vx * 6, ay = f.y + Math.min(0, f.vy) * 6;
+    B.push([clamp(Math.min(f.x, ax), BL.l + 30, BL.r - 30), clamp(Math.max(f.x, ax), BL.l + 30, BL.r - 30), clamp(Math.min(f.y, ay) - 64 * s, BL.t - 160, BL.b), clamp(f.y + 4, BL.t, BL.b)]);
+  }
+  let x0, x1, y0, y1;
+  if (!B.length) { x0 = STAGE.main.x0; x1 = STAGE.main.x1; y0 = 110; y1 = 196; }
+  else { x0 = Math.min(...B.map((b) => b[0])); x1 = Math.max(...B.map((b) => b[1])); y0 = Math.min(...B.map((b) => b[2])); y1 = Math.max(...B.map((b) => b[3])); }
+  const zmax = G.freeze > 0 ? 1.9 : VH > 540 ? 2.3 : 1.6;
+  const fit = (mx, my, hud) => Math.min(W / (x1 - x0 + mx * 2), VH / (SC * (y1 - y0 + my * 2 + (hud || 0))));
+  const HUD = 40;   // room at the bottom for the score panels
+  const z = clamp(Math.min(W / ((x1 - x0) + 170), fit(44, 24, HUD)), 0.45, zmax) + cam.kick;
+  const hw = W / 2 / z, hh = VH / (2 * SC * z);
+  const keep = (v, a, b) => (a <= b ? clamp(v, a, b) : (a + b) / 2);
+  const cx = (x0 + x1) / 2 * 0.8 + W / 2 * 0.2, cy = (y0 + y1) / 2 * 0.8 + 150 * 0.2;
+  let tx = qccCamX(cx, hw), ty = keep(cy, hh + BL.t - 40, H - hh + (VH > 540 ? 50 : 0));
+  tx = keep(tx, x1 + 36 - hw, x0 - 36 + hw); ty = keep(ty, y1 + 18 + HUD - hh, y0 - 18 + hh);
+  const k = snap ? 1 : 0.12, kz = snap ? 1 : z < cam.z ? 0.2 : 0.06;
+  cam.x += (tx - cam.x) * k; cam.y += (ty - cam.y) * k; cam.z += (z - cam.z) * kz; cam.kick *= 0.86;
+  const zf = fit(12, 6); if (cam.z > zf) cam.z = Math.max(zf, 0.45);   // never let anyone leave the screen
+  const hw2 = W / 2 / cam.z, hh2 = VH / (2 * SC * cam.z);
+  cam.x = keep(cam.x, x1 + 8 - hw2, x0 - 8 + hw2); cam.y = keep(cam.y, y1 + 4 - hh2, y0 - 4 + hh2);
+  return true;
+}
+// When the camera zooms far out, the sky picture can come up short at the top or bottom of the screen.
+// Fill behind it with the sky's own top and bottom colours, so there is never an edge.
+var QSE = [];
+function qccSkyFill(i) {
+  let e = QSE[i];
+  if (!e) { try { const c = SKY[i], g = c.getContext("2d"), px = (x, y) => { const d = g.getImageData(x, y, 1, 1).data; return `rgb(${d[0]},${d[1]},${d[2]})`; };
+    e = QSE[i] = { top: px(c.width >> 1, 2), bot: px(c.width >> 1, c.height - 3) }; } catch (err) { e = { top: "#1a1430", bot: "#1a1430" }; } }
+  ctx.fillStyle = e.top; ctx.fillRect(-2000, -3000, W + 4000, 3000 + H / 2);
+  ctx.fillStyle = e.bot; ctx.fillRect(-2000, H / 2, W + 4000, 3000);
+}
+// charging: sparks gather, and a full charge says so
+function qccChargeFx(f) {
+  const s = f.c.s;
+  if (f.chargeT % 3 === 0) { const a = R() * Math.PI * 2, d = 34 * s; G.parts.push({ x: f.x + Math.cos(a) * d, y: f.y - 26 * s + Math.sin(a) * d, vx: -Math.cos(a) * 2.2, vy: -Math.sin(a) * 2.2, life: 14, max: 14, col: R() < 0.5 ? "#ffffff" : f.c.aura, size: 2.5, grav: 0 }); }
+  if (f.chargeT === 59) { popup("MAX!", f.x, f.y - 74, 18, "#ffe066", 30); ring(f.x, f.y - 26 * s, f.c.aura); SFX.counter(); }
+}
 /* ================= end QUEEN CITY CLASH ================= */
 
 const W=480,H=270,SC=2,GRAV=.5,SPARKWIN=12,AIRK=.8;
@@ -2391,7 +2452,7 @@ function updFighter(f,o,live){
       const m=f.move;
       if(bb==='super'&&f.t<6&&f.meter>=100){f.buf=null;startMove(f,'super');break;}
       if(bb==='shield'&&m.air&&!f.onGround){f.buf=null;f.lcT=G.frame;}
-      if(m.charge&&f.t===m.st-1&&h[m.chargeBtn||'attack']&&f.chargeT<60&&(f.onGround||!m.sig)){f.chargeT++;f.charge=1+f.chargeT/60*.5;f.vx*=.8;if(f.chargeT%5===0){burst(f.x+rr(-10,10),f.y-rr(10,40),2,['#ffffff',c.aura],.8,10,2,-.05);SFX.charge();}break;}
+      if(m.charge&&f.t===m.st-1&&h[m.chargeBtn||'attack']&&f.chargeT<60&&(f.onGround||!m.sig)){f.chargeT++;f.charge=1+f.chargeT/60*.5;f.vx*=.8;qccChargeFx(f);if(f.chargeT%5===0){burst(f.x+rr(-10,10),f.y-rr(10,40),2,['#ffffff',c.aura],.8,10,2,-.05);SFX.charge();}break;}
       f.t++;
       if(bb==='attack'&&(f.mname==='jab'||f.mname==='jab2')){
         const n=pickMove(f,'attack');
@@ -2771,7 +2832,7 @@ function afterKO(){
   if(G.winner)announce((G.winner.human&&G.mode==='battle'&&G.rules.humans===2?'Player '+(G.winner.pl+1):G.winner.c.name.toLowerCase())+' wins!');
 }
 
-function updCam(snap){
+function updCam(snap){if(qccUpdCam(snap))return;
   let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity,n=0;
   if(G.freeze>0&&G.freezeBy){const f=G.freezeBy;x0=x1=f.x;y0=f.y-50;y1=f.y;n=1;}
   else for(const f of G.f){if(f.state==='dead'||f.hidden)continue;n++;const fx=clamp(f.x,BL.l+60,BL.r-60),fy=clamp(f.y,BL.t+60,BL.b-30);x0=Math.min(x0,fx);x1=Math.max(x1,fx);y0=Math.min(y0,fy-90);y1=Math.max(y1,fy);}
@@ -3059,7 +3120,7 @@ function drawArena(){
   else{
   // sky: slow parallax so it always fills the screen
   skyT(pz,ox,oy);
-  ctx.drawImage(SKY[G.arena],-60,-40,W+120,H+80);
+  qccSkyFill(G.arena);ctx.drawImage(SKY[G.arena],-60,-40,W+120,H+80);
   const setWorld=()=>worldT(z,ox,oy);
   setWorld();
   ctx.drawImage(STG[G.arena],-QPX,0,W+2*QPX,H);
