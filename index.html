@@ -527,6 +527,16 @@ function qccSelect() {
   if (two || NET.on) { showP(0, 105, 1); showP(1, 870, -1); txt(G.lock[0] && !G.lock[1] ? "WAITING FOR P2…" : !G.lock[0] && G.lock[1] ? "WAITING FOR P1…" : "", 480, 446, 12, "#cfc6ef"); }
   else { showP(0, 110, 1); const c = CHARS[ROSTER[G.sel[0]]]; c.desc.forEach((l, i) => txt(keyTok(l), 700, 300 + i * 22, 13, i === 0 ? "#ffffff" : "#cfc6ef")); stars(c.power, 700, 372, 16); }
   const canon = G.scale === "canon";
+  if (G.mode === "arcade") {   // Nov 2026: power scaling on the left, difficulty on the right
+    ctx.fillStyle = "rgba(10,6,24,.75)"; ctx.fillRect(130, 462, 340, 64); ctx.fillRect(490, 462, 340, 64);
+    txt("POWER SCALING: " + (canon ? "CANON" : "BALANCED"), 300, 482, 14, canon ? "#ff6b6b" : "#7fe0ff");
+    txt(canon ? "MORE STARS = HITS HARDER, FLIES LESS" : "STARS ARE JUST FOR SHOW. FAIR FIGHTS.", 300, 502, 9, "#cfc6ef");
+    txt(TOUCH ? "TAP HERE TO SWITCH" : "PRESS L TO SWITCH", 300, 516, 8, "#9d93c2", undefined, false);
+    txt("DIFFICULTY: " + DIFFS[G.diff], 660, 482, 14, DIFFCOL[G.diff]);
+    txt(DIFF[G.diff].note, 660, 502, 9, "#cfc6ef");
+    txt(TOUCH ? "TAP HERE TO SWITCH" : "PRESS I TO SWITCH", 660, 516, 8, "#9d93c2", undefined, false);
+    return;
+  }
   ctx.fillStyle = "rgba(10,6,24,.75)"; ctx.fillRect(250, 462, 460, 64);
   txt("POWER SCALING: " + (canon ? "CANON" : "BALANCED"), 480, 482, 17, canon ? "#ff6b6b" : "#7fe0ff");
   txt(canon ? "MORE STARS = HITS HARDER AND FLIES LESS" : "STARS ARE JUST FOR SHOW. FAIR FIGHTS.", 480, 502, 10, "#cfc6ef");
@@ -549,6 +559,16 @@ function qccSelectPM() {
   stars(c.power, 640, y0 + 210, 34);
   c.desc.forEach((l, i) => txt(keyTok(l), 640, y0 + 262 + i * 36, 22, i === 0 ? "#ffffff" : "#cfc6ef"));
   const canon = G.scale === "canon", by = Math.max(VH - 136, y0 + 392);
+  if (G.mode === "arcade") {   // Nov 2026: power scaling on the left, difficulty on the right
+    ctx.fillStyle = "rgba(10,6,24,.8)"; ctx.fillRect(40, by, 430, 118); ctx.fillRect(490, by, 430, 118);
+    txt(canon ? "CANON" : "BALANCED", 255, by + 36, 28, canon ? "#ff6b6b" : "#7fe0ff");
+    txt("POWER SCALING", 255, by + 70, 17, "#cfc6ef");
+    txt("TAP TO SWITCH", 255, by + 100, 15, "#9d93c2", undefined, false);
+    txt(DIFFS[G.diff], 705, by + 36, 28, DIFFCOL[G.diff]);
+    txt("DIFFICULTY", 705, by + 70, 17, "#cfc6ef");
+    txt("TAP TO SWITCH", 705, by + 100, 15, "#9d93c2", undefined, false);
+    return;
+  }
   ctx.fillStyle = "rgba(10,6,24,.8)"; ctx.fillRect(100, by, 760, 118);
   txt("POWER SCALING: " + (canon ? "CANON" : "BALANCED"), 480, by + 36, 32, canon ? "#ff6b6b" : "#7fe0ff");
   txt(canon ? "MORE STARS = HITS HARDER" : "STARS ARE JUST FOR SHOW", 480, by + 74, 22, "#cfc6ef");
@@ -583,6 +603,7 @@ function qccRewards() {
   if (G.t > 10 && blink()) txt(TOUCH ? "TAP TO GO BACK" : "J OR K TO GO BACK", 480, pm ? VH - 40 : 526, pm ? 24 : 11, "#ffffff");
 }
 // colour of each costume's dot (the rig recolours the painting; these approximate the result)
+var DIFFCOL = ["#7fe08a", "#ffe066", "#ff6b6b"];   // EASY, NORMAL, HARD
 var SKINDOT = [(c) => c.aura, () => "#e8743a", () => "#3fa6e0"];
 
 /* ---------- signature specials ----------
@@ -1398,7 +1419,22 @@ const LEVELS=[
  {think:18,aggro:.6,shield:.3,react:8,acc:.7,recover:.95,charge:.35,combo:.45,spark:.1,proj:.3,tech:.4,lc:.4,mash:.12},
  {think:12,aggro:.7,shield:.42,react:5,acc:.85,recover:1,charge:.45,combo:.65,spark:.25,proj:.3,tech:.65,lc:.75,mash:.2},
  {think:8,aggro:.78,shield:.52,react:3,acc:.95,recover:1,charge:.5,combo:.8,spark:.4,proj:.3,tech:.8,lc:.9,mash:.3},
+ // Nov 2026: two tougher levels. punish = hits you while you're stuck after a missed move, edge = waits at the edge and swats you as you climb back
+ {think:6,aggro:.82,shield:.6,react:2,acc:1,recover:1,charge:.55,combo:.9,spark:.5,proj:.32,tech:.9,lc:.95,mash:.4,punish:.6,edge:.5},
+ {think:4,aggro:.86,shield:.68,react:1,acc:1,recover:1,charge:.6,combo:1,spark:.6,proj:.34,tech:.97,lc:1,mash:.5,punish:.85,edge:.8},
 ];
+const LEVELNAMES=['EASY','NORMAL','HARD','EXPERT','MASTER','LEGEND'];
+/* Arcade difficulty (Nov 2026). EASY = the original arcade. lv = CPU level for fights 1 to 5,
+   dm = how much harder the CPU hits you, kb = how far the CPU flies when you hit it (lower = harder to knock out). */
+const DIFFS=['EASY','NORMAL','HARD'];
+const DIFF=[
+ {lv:[0,1,2,2,3],dm:1,kb:1,note:'THE ORIGINAL ARCADE. GOOD FOR LEARNING.'},
+ {lv:[1,2,3,4,4],dm:1.12,kb:.9,note:'SHARPER CPUS THAT HIT HARDER.'},
+ {lv:[3,4,4,5,5],dm:1.25,kb:.8,note:'TOP CPUS. THEY PUNISH MISSES AND GUARD THE EDGE.'},
+];
+function arcMul(f,k){return G.mode==='arcade'&&f&&f.ai&&!f.human?DIFF[G.diff][k]:1;}
+function saveDiff(){try{localStorage.setItem('qcc-diff',String(G.diff))}catch(e){}}
+function cycleDiff(){G.diff=(G.diff+1)%DIFFS.length;saveDiff();SFX.blip();}
 
 /* ---------------- stages ---------------- */
 const STAGES=QSTAGES;   // QCC
@@ -2071,6 +2107,7 @@ const G={phase:'title',t:0,frame:0,stage:0,arena:0,menu:0,mode:'arcade',scale:'b
 function loadSaved(k,d){try{return Object.assign(d,JSON.parse(localStorage.getItem(k)||'{}'))}catch(e){return d}}
 G.skins=[{},{}];
 G.rules=loadSaved('qcc-rules',{humans:1,cpus:1,level:1,rule:0,items:1,stage:0});
+G.diff=(()=>{try{const v=localStorage.getItem('qcc-diff');return v!=null&&+v>=0&&+v<=2?+v:1}catch(e){return 1}})();   // arcade difficulty, NORMAL by default
 G.set=loadSaved('qcc-settings',{music:true,announcer:true,btn:1,vibe:true,stickJump:false,mv:2,sv:2});
 if(![1,2,3].includes(G.set.mv))G.set.mv=2;if(![0,1,2,3].includes(G.set.sv))G.set.sv=2;
 const cam={x:W/2,y:H/2,z:1,kick:0};
@@ -2198,14 +2235,14 @@ function landHit(a,d,m,srcX,cx,cy){
     SFX.grab();G.stop=Math.max(G.stop,3);mark(a,'grab');return'grab';
   }
   const sk=a===HAZ?null:m===a.move?a.mname:m.proj?'proj':m.throw?'throw':null;
-  const dmg=m.dmg*a.c.dm*pa*ch*(a.power>0?1.3:1)*staleMul(a,sk);
+  const dmg=m.dmg*a.c.dm*pa*ch*(a.power>0?1.3:1)*staleMul(a,sk)*arcMul(a,'dm');   // arcMul: arcade difficulty
   const wasHit=d.state==='hit'||d.state==='held';
   d.pct=Math.min(999,d.pct+dmg);d.lastHitBy=a;d.lastHitT=G.frame;a.dmgDealt=(a.dmgDealt||0)+dmg;d.dmgTaken=(d.dmgTaken||0)+dmg;if(d.item)dropItem(d);
   // Melee: KB = growth/100 * (1.4 * 200/(weight+100) * (p/10 + p*dmg/20) + 18) + base. Weight only softens the growth part,
   // and harder-hitting moves gain more from percent. Our move numbers are converted: growth x28.6, base x20 (minus what the +18 adds).
   const KBG=m.kbg*28.6,BKB=Math.max(0,m.bkb*20-m.kbg*5.1);
   const dK=m.super?10:10+(dmg-10)*.5;   // half-strength damage term keeps our roster's balance; supers stay as designed
-  let kb=.05*((KBG/100)*(1.4*(200/(d.c.weight+100))*(d.pct/10+d.pct*dK/20)+18)+BKB)*Math.sqrt(pa/pd)*(1+(ch-1)*.7)*(a.power>0?1.15:1);
+  let kb=.05*((KBG/100)*(1.4*(200/(d.c.weight+100))*(d.pct/10+d.pct*dK/20)+18)+BKB)*Math.sqrt(pa/pd)*(1+(ch-1)*.7)*(a.power>0?1.15:1)*arcMul(d,'kb');
   const cc=d.state==='crouch';if(cc)kb*=.67;   // crouch cancel
   if(d.armor&&kb<13&&!m.throw&&!m.domain){   // armored: takes the damage but doesn't flinch
     d.aflash=8;a.combo=1;a.meter=Math.min(100,a.meter+dmg);G.stop=Math.max(G.stop,5);G.shake=Math.max(G.shake,3);
@@ -2756,6 +2793,11 @@ function aiThink(me,op){
   if(!['idle','run','crouch','air','shield'].includes(me.state))return;
   const opGone=op.state==='dead'||op.state==='revive';
   const opOn=op.x>M.x0-6&&op.x<M.x1+6;
+  // punish (MASTER, LEGEND): the opponent missed and is stuck finishing the move, so hit them
+  if(P.punish&&me.onGround&&op.state==='attack'&&op.move&&!op.connected&&op.t>op.move.st+op.move.ac&&dist<90&&Math.abs(dy)<30&&G.frame-(A.punAt||-99)>24){
+    A.punAt=G.frame;
+    if(R()<P.punish){if(dist>40){A.plan='dash';A.planT=20;return;}h[toward]=true;press(me,'attack');if(R()<P.combo)A.combo=[{b:'attack',d:5},{b:'attack',d:7}];return;}
+  }
   // in the air: drift toward and swing
   if(!me.onGround){
     if(!opGone&&opOn&&dist>10)h[toward]=true;
@@ -2781,13 +2823,20 @@ function aiThink(me,op){
     else if(A.plan==='retreat'){if(edgeDanger(away))A.planT=0;else h[away]=true;}
     else if(A.plan==='dash'){h[toward]=true;if(dist<56&&me.runT>10){press(me,'attack');A.planT=0;}if(edgeDanger(toward))A.planT=0;}
     else if(A.plan==='home'){if(Math.abs(me.x-mid)<30)A.planT=0;else h[me.x<mid?'right':'left']=true;}
+    else if(A.plan==='edge'){if(Math.abs(me.x-A.edgeX)<10)A.planT=0;else h[me.x<A.edgeX?'right':'left']=true;}
     return;
   }
   if(--A.cool>0)return;
   A.cool=Math.round(P.think*(.5+R()));
   const set=(p,t)=>{A.plan=p;A.planT=Math.round(t);};
   if(opGone){set('home',30);return;}
-  if(!opOn){if(Math.abs(me.x-mid)>90)set('home',20);return;}
+  if(!opOn){
+    // edge guard (MASTER, LEGEND): wait near the edge they're coming back to and swat them
+    if(P.edge&&!me.onSoft&&R()<P.edge){const ex=op.x<mid?M.x0+26:M.x1-26;
+      if(Math.abs(me.x-ex)>12){A.edgeX=ex;set('edge',24);return;}
+      if(dist<70&&dy>-60&&dy<50){if(me.face!==fdir){h[toward]=true;A.cool=1;return;}if(dy>16)h.down=true;else h[toward]=true;press(me,'attack');}
+      return;}
+    if(Math.abs(me.x-mid)>90)set('home',20);return;}
   if(op.y<me.y-40&&dist<60&&R()<.5){hold({jump:true},8);press(me,'jump');return;}
   if(op.y>me.y+30&&me.onSoft&&R()<.5){tap(me,'down');return;}
   if(me.meter>=100&&dist<110&&Math.abs(dy)<24&&R()<.6){if(me.face!==fdir){h[toward]=true;return;}press(me,'super');return;}
@@ -2838,7 +2887,7 @@ function startArcade(){
   startMatch(0);
 }
 function startMatch(i){
-  G.stage=i;G.arena=G.arcStages[i%G.arcStages.length];setupFighters([G.pick,G.ladder[i]],[G.pickSkin,0]);G.e.ai=aiFor(Math.min(LEVELS.length-1,Math.round(i*(LEVELS.length-1)/Math.max(1,G.ladder.length-1))));
+  G.stage=i;G.arena=G.arcStages[i%G.arcStages.length];setupFighters([G.pick,G.ladder[i]],[G.pickSkin,0]);{const L=DIFF[G.diff].lv;G.e.ai=aiFor(L[Math.min(i,L.length-1)]);}
   G.phase='intro';G.t=0;
 }
 function startBattle(){
@@ -2974,7 +3023,7 @@ function drawTitle(){
 const RULEROWS=[
  ['PLAYERS',()=>G.rules.humans===2?'2 PLAYERS':'1 PLAYER'],
  ['CPU FIGHTERS',()=>String(G.rules.cpus)],
- ['CPU LEVEL',()=>['EASY','NORMAL','HARD','EXPERT'][G.rules.level]],
+ ['CPU LEVEL',()=>LEVELNAMES[G.rules.level]],
  ['RULES',()=>['3 LIVES','1 LIFE','2 MIN TIMER'][G.rules.rule]],
  ['ITEMS',()=>['OFF','SOME','LOTS'][G.rules.items]],
  ['STAGE',()=>G.rules.stage?STAGES[G.rules.stage-1].name.split(' ·')[0]:'RANDOM'],
@@ -2984,7 +3033,7 @@ function changeRule(row,d){
   const r=G.rules;
   if(row===0)r.humans=r.humans===1?2:1;
   else if(row===1)r.cpus+=d;
-  else if(row===2)r.level=(r.level+d+4)%4;
+  else if(row===2)r.level=(r.level+d+LEVELS.length)%LEVELS.length;
   else if(row===3)r.rule=(r.rule+d+3)%3;
   else if(row===4)r.items=(r.items+d+3)%3;
   else if(row===5)r.stage=qccNextStage(r.stage,d);
@@ -3116,7 +3165,7 @@ function drawIntro(){
   txt(CHARS[G.pick].name,230-off,70,26,'#ffffff');txt(e.name,730+off,70,26,'#ffffff');
   stars(CHARS[G.pick].power,230-off,104,22);stars(e.power,730+off,104,22);
   txt('VS',480,250,96,'#ffe9a8');
-  txt(`FIGHT ${G.stage+1} OF ${G.ladder.length}`,480,470,18,'#ffffff');txt(STAGES[G.arena].name,480,500,13,'#cfc6ef');
+  txt(`FIGHT ${G.stage+1} OF ${G.ladder.length} · ${DIFFS[G.diff]}`,480,470,18,'#ffffff');txt(STAGES[G.arena].name,480,500,13,'#cfc6ef');
   if(G.t>40&&blink())txt(OK(),480,330,14,'#ffffff');
 }
 function grantArcade(){
@@ -3152,7 +3201,7 @@ function drawEnding(){
   txt('CHAMPION',300,110,64,'#ffe066');
   txt(CHARS[G.pick].name+' BEAT ALL '+G.ladder.length,300,170,16,'#ffffff');
   const s=G.stats,secs=Math.round((performance.now()-s.start)/1000);
-  [['KOS',s.kos],['SPARKS LANDED',s.sparks],['BEST COMBO',s.maxCombo],['CONTINUES',s.continues],['TIME',Math.floor(secs/60)+':'+String(secs%60).padStart(2,'0')]].forEach(([k,v],i)=>{txt(k,140,232+i*36,15,'#cfc6ef','left');txt(String(v),460,232+i*36,15,'#ffffff','right');});
+  [['DIFFICULTY',DIFFS[G.diff]],['KOS',s.kos],['SPARKS LANDED',s.sparks],['BEST COMBO',s.maxCombo],['CONTINUES',s.continues],['TIME',Math.floor(secs/60)+':'+String(secs%60).padStart(2,'0')]].forEach(([k,v],i)=>{txt(k,140,218+i*32,15,'#cfc6ef','left');txt(String(v),460,218+i*32,15,'#ffffff','right');});
   if(G.news&&G.news.length)G.news.forEach((n,i)=>txt('★ '+n,300,410+i*24,15,G.frame%30<15?'#ffe066':'#ffffff'));
   else txt('POWER SCALING: '+(G.scale==='canon'?'CANON':'BALANCED'),300,430,13,'#ff9ad0');
   if(G.t>60&&blink())txt(OK(),300,490,18,'#ffffff');
@@ -3354,6 +3403,7 @@ const HOWTO=[
    ['KNOCK THEM OFF','Send them past the edge of the screen. 3 lives each.'],
    ['DON\'T FALL','Fell off? Jump, then W + K to fly back. You can grab the edge.'],
    ['POWER SCALING','BALANCED = fair. CANON = more stars hit harder. Pick it on the fighter screen.'],
+   ['DIFFICULTY','ARCADE: EASY, NORMAL or HARD. Pick it on the fighter screen (I key or tap).'],
    ['ITEMS','Hearts heal. Stars power you up. J near a bomb picks it up, J again throws it.'],
    ['2 PLAYERS','In BATTLE. P1: W A S D + F G H  ·  P2: arrows + K L ;'],
  ]},
@@ -3519,6 +3569,7 @@ function onPress(pl,btn){
       else if(btn==='right'&&!G.lock[p])step(1);
       else if((btn==='up'||btn==='down')&&!G.lock[p])cycleSkin(p,ROSTER[G.sel[p]]);
       else if(btn==='shield'){G.scale=G.scale==='canon'?'balanced':'canon';SFX.blip();}
+      else if((btn==='diff'||btn==='super')&&G.mode==='arcade'&&!NET.on)cycleDiff();
       else if(btn==='special'){if(G.lock[p]){G.lock[p]=false;SFX.blip();}else if(NET.on){}else if(G.mode==='battle'){G.phase='rules';G.t=0;}else goTitle();}
       else if(ok&&G.t>8&&(avail(ROSTER[G.sel[p]])||(NET.on&&p===1))){G.lock[p]=true;SFX.blip();if(!two||(G.lock[0]&&G.lock[1]))beginMode();}
       break;}
@@ -3575,6 +3626,7 @@ const twoKeys=()=>!NET.on&&G.mode==='battle'&&G.rules.humans===2&&(G.phase==='se
 function keyMap(code){
   if(GLOBAL[code])return[0,GLOBAL[code]];
   if(twoKeys()){for(let p=0;p<2;p++)if(KEYS2P[p][code])return[p,KEYS2P[p][code]];return null;}
+  if(code==='KeyI'&&G.mode==='arcade'&&G.phase==='select')return[0,'diff'];
   if(code==='KeyH')return[0,'help'];
   if(code==='KeyP')return[0,'pause'];
   return KEYS1P[code]?[0,KEYS1P[code]]:null;
@@ -3681,7 +3733,7 @@ cv.addEventListener('pointerdown',e=>{
   if(G.phase==='rules'||G.phase==='settings'){const isR=G.phase==='rules',rows=isR?RULEROWS:SETROWS;for(let i=0;i<rows.length;i++)if(Math.abs(y-rowY(i))<(PM()?54:22)&&(PM()?x>20&&x<940:x>200&&x<760)){if(isR)G.rrow=i;else G.srow=i;onPress(0,i===rows.length-1?'attack':(x<480?'left':'right'));return;}return;}
   if(G.phase==='select'){
     for(let i=0;i<ROSTER.length;i++){const c=cardRect(i);if(x>=c.x&&x<=c.x+c.w&&y>=c.y&&y<=c.y+c.h){const id=ROSTER[i];if(!avail(id)){SFX.blip();return;}if(G.sel[0]===i&&!G.lock[0]&&inDots(c,x,y)&&cycleSkin(0,id))return;if(G.sel[0]===i){G.lock[0]=true;if(!NET.on)G.lock[1]=true;SFX.blip();if(!NET.on||G.lock[1])beginMode();}else if(!G.lock[0]){G.sel[0]=i;SFX.blip();}return;}}
-    if(PM()?y>Math.max(VH-140,1130):y>455){onPress(0,'shield');return;}
+    if(PM()?y>Math.max(VH-140,1130):y>455){onPress(0,G.mode==='arcade'&&!NET.on&&x>=480?'diff':'shield');return;}
     return;
   }
   if(G.phase==='result'&&G.mode!=='arcade'){for(let i=0;i<4;i++)if(Math.abs(y-resultMenuY(i))<(PM()?34:14)&&G.t>=40){resultSelect(i);return;}return;}
